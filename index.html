@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Battle Arena</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+:root {
+  --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --border:#2a2a3d;
+  --blue:#4f8ef7; --blue-dim:#1a2a4a;
+  --red:#f74f6a;  --red-dim:#4a1a24;
+  --gold:#f7c84f; --gold-dim:#4a3a10;
+  --green:#4ff7a0; --text:#e8e8f0; --text-dim:#7a7a9a;
+  --mono:'Space Mono',monospace; --sans:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:9999}
+
+header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,15,.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:3px;color:var(--text)}
+.logo em{color:var(--gold);font-style:normal}
+.hdr-right{font-family:var(--mono);font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SETUP */
+#setup{max-width:780px;margin:40px auto;padding:0 20px}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:16px}
+
+.topic-wrap{margin-bottom:16px}
+.topic-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:17px;padding:15px 18px;border-radius:8px;outline:none;transition:border-color .2s}
+.topic-wrap input:focus{border-color:var(--blue)}
+.topic-wrap input::placeholder{color:var(--text-dim)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-size:12px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--blue);color:var(--text)}
+
+/* API KEY BLOCK */
+
+/* FIGHTERS */
+.fighters-row{display:grid;grid-template-columns:1fr 48px 1fr;align-items:stretch;margin-bottom:24px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.fighter-col{background:var(--surface);padding:20px}
+.fighter-col.a{border-right:1px solid var(--border)}
+.vs-col{background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:700;writing-mode:vertical-rl;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.fighter-heading{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.fighter-heading.a{color:var(--blue)}
+.fighter-heading.b{color:var(--red)}
+.fighter-card{display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:8px;border:1px solid}
+.fighter-card.a{border-color:rgba(79,142,247,.3);background:var(--blue-dim)}
+.fighter-card.b{border-color:rgba(247,79,106,.3);background:var(--red-dim)}
+.fc-emoji{font-size:30px;width:40px;text-align:center;flex-shrink:0;padding-top:2px}
+.fc-name{font-weight:700;font-size:14px;margin-bottom:3px}
+.fc-name.a{color:var(--blue)}
+.fc-name.b{color:var(--red)}
+.fc-model{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:6px}
+.fc-trait{font-size:11px;color:var(--text-dim);line-height:1.5}
+
+/* Judge info */
+.judge-info{background:var(--surface);border:1px solid rgba(247,200,79,.25);border-radius:10px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:14px}
+.judge-emoji{font-size:24px}
+.judge-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px}
+.judge-name{font-size:13px;font-weight:600;color:var(--text)}
+.judge-model{font-family:var(--mono);font-size:10px;color:var(--text-dim)}
+
+.rounds-row{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.rounds-row label{font-size:13px;color:var(--text-dim)}
+.rounds-row input[type=range]{accent-color:var(--blue);width:130px;cursor:pointer}
+.rounds-val{font-family:var(--mono);font-weight:700;color:var(--blue);min-width:20px}
+
+.btn-start{width:100%;padding:17px;background:linear-gradient(135deg,var(--blue),#7b4ff7);border:none;color:#fff;font-family:var(--mono);font-size:15px;letter-spacing:3px;font-weight:700;border-radius:8px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-start:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 32px rgba(79,142,247,.4)}
+.btn-start:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ARENA */
+#arena{display:none;padding:0 20px 80px;max-width:1200px;margin:0 auto}
+.arena-top{display:flex;align-items:center;justify-content:space-between;padding:20px 0 14px}
+.arena-topic-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-dim);margin-bottom:4px}
+.arena-topic-text{font-size:15px;font-weight:600}
+.btn-reset{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:8px 14px;border-radius:6px;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.btn-reset:hover{border-color:var(--text-dim);color:var(--text)}
+
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 22px}
+.sc-side{display:flex;flex-direction:column;gap:3px}
+.sc-side.right{align-items:flex-end}
+.sc-name{font-size:13px;font-weight:600}
+.sc-name.a{color:var(--blue)}
+.sc-name.b{color:var(--red)}
+.sc-pts{font-family:var(--mono);font-size:34px;font-weight:700}
+.sc-pts.a{color:var(--blue)}
+.sc-pts.b{color:var(--red)}
+.sc-sep{font-family:var(--mono);font-size:18px;color:var(--text-dim)}
+.sc-bar-wrap{grid-column:1/-1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sc-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--red));width:50%;transition:width .6s ease;border-radius:2px}
+
+.battle-grid{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+.chat-col{display:flex;flex-direction:column}
+.chat-feed{background:var(--surface);border:1px solid var(--border);border-radius:10px 10px 0 0;min-height:480px;max-height:580px;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px}
+.chat-feed::-webkit-scrollbar{width:3px}
+.chat-feed::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.msg{display:flex;flex-direction:column;gap:5px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg.right{align-items:flex-end}
+.msg.center{align-items:center}
+.msg-meta{display:flex;align-items:center;gap:7px;font-size:11px;font-family:var(--mono)}
+.msg-meta.right{flex-direction:row-reverse}
+.tag{padding:2px 8px;border-radius:3px;font-weight:700;letter-spacing:1px;font-size:10px;text-transform:uppercase}
+.tag-a{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(79,142,247,.3)}
+.tag-b{background:var(--red-dim);color:var(--red);border:1px solid rgba(247,79,106,.3)}
+.tag-j{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(247,200,79,.3)}
+.msg-time{color:var(--text-dim)}
+.bubble{padding:12px 16px;font-size:13px;line-height:1.7;max-width:82%}
+.bubble.a{background:var(--blue-dim);border:1px solid rgba(79,142,247,.15);border-radius:4px 14px 14px 14px}
+.bubble.b{background:var(--red-dim);border:1px solid rgba(247,79,106,.15);border-radius:14px 4px 14px 14px}
+.bubble.j{background:var(--gold-dim);border:1px solid rgba(247,200,79,.2);border-radius:14px;font-style:italic;max-width:94%}
+.int-badge{display:inline-block;background:#2a1a3a;border:1px solid #6a3af7;color:#a37af7;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;margin-left:5px}
+.typing-row{display:flex;align-items:center;gap:8px;padding:10px 0;font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;animation:dot 1.2s infinite;margin:0 1px}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{opacity:.15}40%{opacity:1}}
+.round-sep{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin:4px 0}
+.round-sep::before,.round-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.chat-controls{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.round-lbl{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.round-lbl strong{color:var(--text)}
+.ctrl-btns{display:flex;gap:8px}
+.btn-ctrl{font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:9px 16px;border-radius:6px;cursor:pointer;transition:all .15s;text-transform:uppercase;border:1px solid}
+.btn-ctrl.blue{border-color:var(--blue);color:var(--blue);background:transparent}
+.btn-ctrl.blue:hover:not(:disabled){background:var(--blue);color:#fff}
+.btn-ctrl.gold{border-color:var(--gold);color:var(--gold);background:transparent}
+.btn-ctrl.gold:hover:not(:disabled){background:var(--gold);color:var(--bg)}
+.btn-ctrl:disabled{opacity:.35;cursor:not-allowed}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:12px}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.scard-title{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
+.fighter-mini{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.fighter-mini:last-child{margin-bottom:0}
+.fmini-ava{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fmini-ava.a{background:var(--blue-dim)}
+.fmini-ava.b{background:var(--red-dim)}
+.fmini-name{font-weight:600;font-size:13px;margin-bottom:1px}
+.fmini-name.a{color:var(--blue)}
+.fmini-name.b{color:var(--red)}
+.fmini-sub{font-size:10px;color:var(--text-dim);line-height:1.45}
+
+/* Analytics */
+.stat-item{margin-bottom:12px}
+.stat-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.stat-lbl{color:var(--text-dim)}
+.stat-vals{display:flex;gap:12px;font-family:var(--mono);font-weight:700;font-size:12px}
+.sv-a{color:var(--blue)}
+.sv-b{color:var(--red)}
+.minibar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.minibar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--red));border-radius:2px;transition:width .5s ease}
+.stat-hint{font-size:9px;color:var(--text-dim);margin-top:8px;line-height:1.5;border-top:1px solid var(--border);padding-top:8px}
+
+/* Winner */
+#winner{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+#winner.show{display:flex}
+.wbox{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;max-width:620px;width:90%;text-align:center;animation:pop .4s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.wcrown{font-size:58px;margin-bottom:10px}
+.wtitle{font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px}
+.wname{font-size:30px;font-weight:700;margin-bottom:16px}
+.wname.a{color:var(--blue)}
+.wname.b{color:var(--red)}
+.wname.tie{color:var(--gold)}
+.wverdict{font-size:13px;color:var(--text-dim);line-height:1.75;margin-bottom:22px;text-align:left;max-height:200px;overflow-y:auto}
+.wstats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px}
+.wstat{background:var(--surface2);border-radius:8px;padding:10px;text-align:center}
+.wstat-val{font-family:var(--mono);font-size:16px;font-weight:700;margin-bottom:3px}
+.wstat-lbl{font-size:9px;color:var(--text-dim);line-height:1.3}
+.btn-new{background:linear-gradient(135deg,var(--blue),#7b4ff7);border:none;color:#fff;font-family:var(--mono);font-size:12px;letter-spacing:2px;padding:13px 28px;border-radius:7px;cursor:pointer;text-transform:uppercase}
+.btn-new:hover{opacity:.85}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--red-dim);border:1px solid var(--red);color:var(--text);padding:11px 22px;border-radius:7px;font-size:13px;z-index:400;display:none;max-width:90vw;text-align:center}
+.toast.show{display:block;animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+
+@media(max-width:720px){
+  .battle-grid{grid-template-columns:1fr}
+  .fighters-row{grid-template-columns:1fr;grid-template-rows:auto auto auto}
+  .vs-col{writing-mode:horizontal-tb;padding:10px;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .fighter-col.a{border-right:none;border-bottom:1px solid var(--border)}
+  .wstats-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI <em>BATTLE</em> ARENA</div>
+  <div class="hdr-right"><span class="dot"></span> OPENROUTER ENGINE</div>
+</header>
+
+<!-- ══════════════ SETUP ══════════════ -->
+<div id="setup">
+
+  <div class="section-label" style="margin-top:0">// ТЕМА СПОРА</div>
+  <div class="topic-wrap">
+    <input id="topic-input" type="text" placeholder="Введите тему… например: ИИ заменит программистов?" maxlength="200">
+  </div>
+  <div class="chips">
+    <span class="chip" onclick="setTopic(this)">☀️ Утренняя vs вечерняя пробежка</span>
+    <span class="chip" onclick="setTopic(this)">🤖 ИИ заменит программистов?</span>
+    <span class="chip" onclick="setTopic(this)">🏙️ Город vs деревня</span>
+    <span class="chip" onclick="setTopic(this)">📚 Бумажные книги vs электронные</span>
+    <span class="chip" onclick="setTopic(this)">🚀 Марс vs Луна — что важнее?</span>
+    <span class="chip" onclick="setTopic(this)">🐱 Кошки лучше собак</span>
+    <span class="chip" onclick="setTopic(this)">☕ Кофе vs чай</span>
+    <span class="chip" onclick="setTopic(this)">💤 8 часов сна — миф?</span>
+  </div>    </div>
+    <div class="vs-col">VS</div>
+    <div class="fighter-col b">
+      <div class="fighter-heading b">🔥 БОЕЦ B</div>
+      <div class="fighter-card b">
+        <div class="fc-emoji">🐉</div>
+        <div>
+          <div class="fc-name b">Qwen3 80B</div>
+          <div class="fc-model">qwen/qwen3-next-80b-a3b-instruct:free</div>
+          <div class="fc-trait">Академичный аналитик. Оперирует данными, ссылается на исследования, строит системные многоуровневые аргументы. Многословен, но убедителен.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── JUDGE ── -->
+  <div class="judge-info">
+    <div class="judge-emoji">⚖️</div>
+    <div>
+      <div class="judge-label">Арбитр</div>
+      <div class="judge-name">GPT-oss-120B</div>
+      <div class="judge-model">openai/gpt-oss-120b:free — выносит финальный вердикт</div>
+    </div>
+  </div>
+
+  <div class="rounds-row">
+    <label>Раундов:</label>
+    <input type="range" id="rounds-sl" min="2" max="6" value="3" oninput="$('rounds-val').textContent=this.value">
+    <span class="rounds-val" id="rounds-val">3</span>
+    <span style="color:var(--text-dim);font-size:12px">+ арбитр в конце</span>
+  </div>
+
+  <button class="btn-start" onclick="startBattle()">⚡ НАЧАТЬ БОЙ</button>
+</div>
+
+<!-- ══════════════ ARENA ══════════════ -->
+<div id="arena">
+  <div class="arena-top">
+    <div>
+      <div class="arena-topic-lbl">// ТЕМА БАТЛА</div>
+      <div class="arena-topic-text" id="a-topic"></div>
+    </div>
+    <button class="btn-reset" onclick="resetBattle()">↩ НОВЫЙ БОЙ</button>
+  </div>
+
+  <div class="scoreboard">
+    <div class="sc-side">
+      <div class="sc-name a">🦙 Llama 3.3</div>
+      <div class="sc-pts a" id="sc-pts-a">0</div>
+    </div>
+    <div class="sc-sep">:</div>
+    <div class="sc-side right">
+      <div class="sc-name b">🐉 Qwen3</div>
+      <div class="sc-pts b" id="sc-pts-b">0</div>
+    </div>
+    <div class="sc-bar-wrap"><div class="sc-bar" id="sc-bar"></div></div>
+  </div>
+
+  <div class="battle-grid">
+    <div class="chat-col">
+      <div class="chat-feed" id="chat-feed"></div>
+      <div class="chat-controls">
+        <div class="round-lbl">Раунд <strong id="cur-rnd">1</strong> / <strong id="max-rnd">3</strong></div>
+        <div class="ctrl-btns">
+          <button class="btn-ctrl gold" id="btn-judge" onclick="callJudge()" disabled>⚖️ АРБИТР</button>
+          <button class="btn-ctrl blue" id="btn-next" onclick="nextRound()" disabled>▶ СЛЕДУЮЩИЙ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="scard">
+        <div class="scard-title">// УЧАСТНИКИ</div>
+        <div class="fighter-mini">
+          <div class="fmini-ava a">🦙</div>
+          <div>
+            <div class="fmini-name a">Llama 3.3 70B</div>
+            <div class="fmini-sub">Философ-провокатор<br>meta-llama · Groq · free</div>
+          </div>
+        </div>
+        <div class="fighter-mini">
+          <div class="fmini-ava b">🐉</div>
+          <div>
+            <div class="fmini-name b">Qwen3 80B</div>
+            <div class="fmini-sub">Академичный аналитик<br>Alibaba · qwen · free</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE ANALYTICS -->
+      <div class="scard">
+        <div class="scard-title">// АНАЛИТИКА — LIVE</div>
+
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">📝 Слова</span><span class="stat-vals"><span class="sv-a" id="st-w-a">0</span><span class="sv-b" id="st-w-b">0</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-w" style="width:50%"></div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">❓ Вопросы</span><span class="stat-vals"><span class="sv-a" id="st-q-a">0</span><span class="sv-b" id="st-q-b">0</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-q" style="width:50%"></div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">🤝 Согласия</span><span class="stat-vals"><span class="sv-a" id="st-ag-a">0</span><span class="sv-b" id="st-ag-b">0</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-ag" style="width:50%"></div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">⚡ Перебивания</span><span class="stat-vals"><span class="sv-a" id="st-int-a">0</span><span class="sv-b" id="st-int-b">0</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-int" style="width:50%"></div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">🔥 Агрессия</span><span class="stat-vals"><span class="sv-a" id="st-a-a">0%</span><span class="sv-b" id="st-a-b">0%</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-a" style="width:50%"></div></div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-top"><span class="stat-lbl">❗ Восклицания</span><span class="stat-vals"><span class="sv-a" id="st-e-a">0</span><span class="sv-b" id="st-e-b">0</span></span></div>
+          <div class="minibar"><div class="minibar-fill" id="mb-e" style="width:50%"></div></div>
+        </div>
+
+        <div class="stat-hint">
+          🤝 согласия: «да», «верно», «согласен», «действительно»…<br>
+          ⚡ перебивания: начинает с «Нет,», «Стоп», «Но ведь»…<br>
+          🔥 агрессия: доля провокационных слов в тексте
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Winner modal -->
+<div id="winner">
+  <div class="wbox">
+    <div class="wcrown" id="w-crown">🏆</div>
+    <div class="wtitle">ПОБЕДИТЕЛЬ БАТЛА</div>
+    <div class="wname" id="w-name">—</div>
+    <div class="wstats-grid">
+      <div class="wstat"><div class="wstat-val sv-a" id="w-w-a">0</div><div class="wstat-lbl">Llama — слова</div></div>
+      <div class="wstat"><div class="wstat-val sv-b" id="w-w-b">0</div><div class="wstat-lbl">Qwen — слова</div></div>
+      <div class="wstat"><div class="wstat-val" id="w-agree" style="color:var(--green)">0/0</div><div class="wstat-lbl">согласий A/B</div></div>
+      <div class="wstat"><div class="wstat-val" id="w-int" style="color:#a37af7">0/0</div><div class="wstat-lbl">перебиваний A/B</div></div>
+      <div class="wstat"><div class="wstat-val" id="w-agg" style="color:var(--red)">0%/0%</div><div class="wstat-lbl">агрессия A/B</div></div>
+      <div class="wstat"><div class="wstat-val" id="w-q" style="color:var(--gold)">0/0</div><div class="wstat-lbl">вопросов A/B</div></div>
+    </div>
+    <div class="wverdict" id="w-verdict"></div>
+    <button class="btn-new" onclick="resetBattle()">⚡ НОВЫЙ БОЙ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  КОНФИГ — OpenRouter, один ключ для всех трёх моделей
+// ════════════════════════════════════════════════════════
+
+
+const FIGHTER_A = {
+  name: 'Llama 3.3',
+  emoji: '🦙',
+  model: 'meta-llama/llama-3.3-70b-instruct:free',
+  style: `Ты — философ-провокатор в споре. Твои правила:
+— Никогда не принимай «очевидное», всегда ломай шаблон
+— Задавай один острый встречный вопрос, который рушит аргумент оппонента
+— Начинай ответ с «Но подождите...», «Стоп.», «А разве не наоборот?» или «Сама постановка ошибочна:»
+— Говори резко, коротко, 2-3 предложения
+— Используй неожиданные аналогии из других областей`
+};
+
+const FIGHTER_B = {
+  name: 'Qwen3',
+  emoji: '🐉',
+  model: 'qwen/qwen3-next-80b-a3b-instruct:free',
+  style: `Ты — академичный аналитик в споре. Твои правила:
+— Оперируй данными и ссылайся на «исследования» и «статистику»
+— Строй многоуровневые аргументы: причина → механизм → следствие
+— Иногда можешь частично согласиться с оппонентом, но затем разгромить главный тезис
+— Используй фразы «Согласно исследованиям...», «Данные показывают...», «Если рассмотреть системно...»
+— 3-5 предложений, каждое несёт новый аргумент`
+};
+
+const JUDGE = {
+  name: 'GPT-oss-120B',
+  emoji: '⚖️',
+  model: 'openai/gpt-oss-120b:free'
+};
+
+// ── Словари метрик ──────────────────────────────────────
+const AGGRO = ['неверно','ошибка','неправильно','абсурд','провал','слабо','наивно','заблуждение','напротив','опровергаю','неубедительно','противоречит','глупо','бессмысленно','чушь','вздор','примитивно'];
+const AGREE = ['согласен','согласна','соглашусь','верно','правильно','действительно','справедливо','именно','точно','разумеется','конечно','да,','да.','да!','признаю','правда','справедливое замечание'];
+const INTERRUPT_STARTS = ['нет,','нет!','стоп','подождите','но ведь','но подождите','позвольте','однако,','но нет','неверно','ошибаетесь','не так','позвольте не','но стоп','сама постановка'];
+
+// ── State ───────────────────────────────────────────────
+let S = {
+  topic:'', maxRounds:3, curRound:0,
+  history:[], scoreA:0, scoreB:0,
+  statsA:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0},
+  statsB:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0},
+  running:false
+};
+
+// ── Utils ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const now = () => new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+const words = t => t.trim().split(/\s+/).filter(Boolean).length;
+const qs  = t => (t.match(/\?/g)||[]).length;
+const exs = t => (t.match(/!/g)||[]).length;
+const bw  = (a,b) => a+b===0 ? 50 : Math.round(a/(a+b)*100);
+
+const countAggro = t => {
+  const w = t.toLowerCase().split(/\s+/);
+  return Math.round(w.filter(x => AGGRO.some(a => x.includes(a))).length / Math.max(w.length,1) * 100);
+};
+const countAgrees    = t => AGREE.filter(w => t.toLowerCase().includes(w)).length;
+const countInterrupt = t => INTERRUPT_STARTS.some(s => t.trim().toLowerCase().startsWith(s)) ? 1 : 0;
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),4000); }
+function setTopic(el){ $('topic-input').value = el.textContent.replace(/^.{2}/,'').trim(); }
+
+function updateScore(){
+  $('sc-pts-a').textContent=S.scoreA;
+  $('sc-pts-b').textContent=S.scoreB;
+  const tot=S.scoreA+S.scoreB;
+  $('sc-bar').style.width=(tot?Math.round(S.scoreA/tot*100):50)+'%';
+}
+
+function updateStats(side, text){
+  const st = side==='A' ? S.statsA : S.statsB;
+  if(text){ st.w+=words(text); st.q+=qs(text); st.e+=exs(text); st.n++; st.agg=Math.round((st.agg*(st.n-1)+countAggro(text))/st.n); st.agrees+=countAgrees(text); st.interrupts+=countInterrupt(text); }
+  const sa=S.statsA, sb=S.statsB;
+  $('st-w-a').textContent=sa.w;       $('st-w-b').textContent=sb.w;       $('mb-w').style.width=bw(sa.w,sb.w)+'%';
+  $('st-q-a').textContent=sa.q;       $('st-q-b').textContent=sb.q;       $('mb-q').style.width=bw(sa.q,sb.q)+'%';
+  $('st-e-a').textContent=sa.e;       $('st-e-b').textContent=sb.e;       $('mb-e').style.width=bw(sa.e,sb.e)+'%';
+  $('st-a-a').textContent=sa.agg+'%'; $('st-a-b').textContent=sb.agg+'%'; $('mb-a').style.width=bw(sa.agg,sb.agg)+'%';
+  $('st-ag-a').textContent=sa.agrees; $('st-ag-b').textContent=sb.agrees; $('mb-ag').style.width=bw(sa.agrees,sb.agrees)+'%';
+  $('st-int-a').textContent=sa.interrupts; $('st-int-b').textContent=sb.interrupts; $('mb-int').style.width=bw(sa.interrupts,sb.interrupts)+'%';
+}
+
+// ── OpenRouter API ──────────────────────────────────────
+async function callOR(model, systemPrompt, messages) {
+  const msgs = [{role:'system', content:systemPrompt}, ...messages];
+
+  const r = await fetch('/api/battle', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ model, messages: msgs })
+  });
+
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error?.message || `OpenRouter error ${r.status}`);
+  if (!d.choices?.[0]?.message?.content) throw new Error('Пустой ответ от модели. Возможно, модель перегружена — попробуй ещё раз.');
+  return d.choices[0].message.content;
+}
+
+// ── Chat render ─────────────────────────────────────────
+function addMsg(who, name, text, hasInterrupt) {
+  const feed = $('chat-feed');
+  const side   = who==='A'?'left':who==='B'?'right':'center';
+  const tagCls = who==='A'?'tag-a':who==='B'?'tag-b':'tag-j';
+  const bubCls = who==='A'?'a':who==='B'?'b':'j';
+  const metaDir = who==='B'?'right':'';
+  const intBadge = hasInterrupt ? '<span class="int-badge">⚡ ПЕРЕБИЛ</span>' : '';
+  const div = document.createElement('div');
+  div.className = 'msg '+side;
+  div.innerHTML = `
+    <div class="msg-meta ${metaDir}">
+      <span class="tag ${tagCls}">${name}</span>
+      ${intBadge}
+      <span class="msg-time">${now()}</span>
+    </div>
+    <div class="bubble ${bubCls}">${text.replace(/\n/g,'<br>')}</div>`;
+  feed.appendChild(div);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function addSep(n){ const d=document.createElement('div'); d.className='round-sep'; d.textContent=`РАУНД ${n}`; $('chat-feed').appendChild(d); }
+
+function addTyping(label, colorVar) {
+  rmTyping();
+  const d = document.createElement('div');
+  d.id='typing'; d.className='msg center';
+  d.innerHTML=`<div class="typing-row"><span style="color:var(${colorVar});font-family:var(--mono);font-size:10px">${label}</span>&nbsp;<div class="dots"><span></span><span></span><span></span></div></div>`;
+  $('chat-feed').appendChild(d);
+  $('chat-feed').scrollTop = $('chat-feed').scrollHeight;
+}
+function rmTyping(){ const t=$('typing'); if(t) t.remove(); }
+
+// ── Build messages for each fighter ────────────────────
+function buildMsgs(forSide) {
+  const myName = forSide==='A' ? FIGHTER_A.name : FIGHTER_B.name;
+  const msgs = [];
+  for (const h of S.history) {
+    msgs.push({ role: h.name===myName?'assistant':'user', content:`[${h.name}]: ${h.text}` });
+  }
+  if (!msgs.length) {
+    msgs.push({role:'user', content:`Тема спора: "${S.topic}". Открой свою позицию.`});
+  } else if (msgs[msgs.length-1].role==='assistant') {
+    msgs.push({role:'user', content:'Ответь оппоненту. Будь конкретен.'});
+  }
+  return msgs;
+}
+
+// ── Battle logic ────────────────────────────────────────
+async function startBattle() {
+  const topic = $('topic-input').value.trim();
+  if (!topic) { toast('Введи тему спора!'); return; }
+  
+
+  S.topic=topic; S.maxRounds=+$('rounds-sl').value;
+  S.curRound=0; S.history=[];
+  S.scoreA=0; S.scoreB=0;
+  S.statsA={w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
+  S.statsB={w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
+
+  $('setup').style.display='none';
+  $('arena').style.display='block';
+  $('a-topic').textContent=topic;
+  $('cur-rnd').textContent=1; $('max-rnd').textContent=S.maxRounds;
+  $('chat-feed').innerHTML='';
+  $('btn-next').disabled=true; $('btn-judge').disabled=true;
+  updateScore(); updateStats('A',''); updateStats('B','');
+
+  await playRound();
+}
+
+async function playRound() {
+  S.running=true; S.curRound++;
+  $('cur-rnd').textContent=S.curRound;
+  $('btn-next').disabled=true; $('btn-judge').disabled=true;
+  addSep(S.curRound);
+
+  // ─ Fighter A ─
+  try {
+    addTyping(FIGHTER_A.emoji+' '+FIGHTER_A.name+' думает…', '--blue');
+    let textA = await callOR(FIGHTER_A.model, FIGHTER_A.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию.`, buildMsgs('A'));
+    rmTyping();
+    textA = textA.trim().replace(/^\[.*?\]:\s*/,'');
+    S.history.push({name:FIGHTER_A.name, text:textA});
+    const intA = countInterrupt(textA);
+    addMsg('A', FIGHTER_A.emoji+' '+FIGHTER_A.name, textA, intA>0);
+    updateStats('A', textA);
+    S.scoreA += Math.min(4, Math.ceil(words(textA)/12));
+    updateScore();
+  } catch(e){ rmTyping(); toast('Ошибка Llama: '+e.message); S.running=false; return; }
+
+  await new Promise(r=>setTimeout(r,900));
+
+  // ─ Fighter B ─
+  try {
+    addTyping(FIGHTER_B.emoji+' '+FIGHTER_B.name+' думает…', '--red');
+    let textB = await callOR(FIGHTER_B.model, FIGHTER_B.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию.`, buildMsgs('B'));
+    rmTyping();
+    textB = textB.trim().replace(/^\[.*?\]:\s*/,'');
+    S.history.push({name:FIGHTER_B.name, text:textB});
+    const intB = countInterrupt(textB);
+    addMsg('B', FIGHTER_B.emoji+' '+FIGHTER_B.name, textB, intB>0);
+    updateStats('B', textB);
+    S.scoreB += Math.min(4, Math.ceil(words(textB)/12));
+    updateScore();
+  } catch(e){ rmTyping(); toast('Ошибка Qwen: '+e.message); S.running=false; return; }
+
+  S.running=false;
+  $('btn-judge').disabled=false;
+  if (S.curRound < S.maxRounds) {
+    $('btn-next').disabled=false;
+  } else {
+    $('btn-next').textContent='✓ РАУНДЫ СЫГРАНЫ';
+    $('btn-next').disabled=true;
+  }
+}
+
+async function nextRound() { if(S.running) return; await playRound(); }
+
+async function callJudge() {
+  if(S.running) return;
+  S.running=true; $('btn-judge').disabled=true; $('btn-next').disabled=true;
+
+  const sep=document.createElement('div'); sep.className='round-sep'; sep.textContent='⚖️ ВЕРДИКТ АРБИТРА'; $('chat-feed').appendChild(sep);
+  addTyping('⚖️ Арбитр (GPT-oss-120B) анализирует…', '--gold');
+
+  const sa=S.statsA, sb=S.statsB;
+  const transcript = S.history.map(h=>`[${h.name}]: ${h.text}`).join('\n\n');
+  const prompt = `Тема спора: "${S.topic}"
+
+ПОЛНЫЙ ДИАЛОГ:
+${transcript}
+
+СТАТИСТИКА:
+${FIGHTER_A.name}: слов=${sa.w}, вопросов=${sa.q}, восклицаний=${sa.e}, согласий=${sa.agrees}, перебиваний=${sa.interrupts}, агрессия=${sa.agg}%
+${FIGHTER_B.name}: слов=${sb.w}, вопросов=${sb.q}, восклицаний=${sb.e}, согласий=${sb.agrees}, перебиваний=${sb.interrupts}, агрессия=${sb.agg}%
+
+Оцени спор объективно. Назови победителя по имени, его сильнейший аргумент и главную слабость проигравшего. Учти статистику. 4-5 предложений.`;
+
+  let verdict;
+  try {
+    verdict = await callOR(
+      JUDGE.model,
+      'Ты — беспристрастный арбитр дебатов. Оценивай логику аргументов, убедительность и риторику. Будь объективен.',
+      [{role:'user', content:prompt}]
+    );
+  } catch(e){ rmTyping(); toast('Ошибка арбитра: '+e.message); S.running=false; return; }
+
+  rmTyping();
+  verdict = verdict.trim();
+  addMsg('J', '⚖️ АРБИТР (GPT-oss-120B)', verdict, false);
+
+  // Определяем победителя
+  const vl=verdict.toLowerCase();
+  const na=FIGHTER_A.name.toLowerCase(), nb=FIGHTER_B.name.toLowerCase();
+  let wName, wCls, wCrown;
+  if      (vl.includes(na) && !vl.includes(nb)) { wName=FIGHTER_A.name; wCls='a'; wCrown=FIGHTER_A.emoji; }
+  else if (vl.includes(nb) && !vl.includes(na)) { wName=FIGHTER_B.name; wCls='b'; wCrown=FIGHTER_B.emoji; }
+  else if (S.scoreA > S.scoreB)                  { wName=FIGHTER_A.name; wCls='a'; wCrown=FIGHTER_A.emoji; }
+  else if (S.scoreB > S.scoreA)                  { wName=FIGHTER_B.name; wCls='b'; wCrown=FIGHTER_B.emoji; }
+  else                                            { wName='НИЧЬЯ';        wCls='tie'; wCrown='🤝'; }
+
+  setTimeout(()=>{
+    $('w-crown').textContent=wCrown;
+    $('w-name').textContent=wName;
+    $('w-name').className='wname '+wCls;
+    $('w-verdict').textContent=verdict;
+    $('w-w-a').textContent=sa.w;
+    $('w-w-b').textContent=sb.w;
+    $('w-agree').textContent=`${sa.agrees} / ${sb.agrees}`;
+    $('w-int').textContent=`${sa.interrupts} / ${sb.interrupts}`;
+    $('w-agg').textContent=`${sa.agg}% / ${sb.agg}%`;
+    $('w-q').textContent=`${sa.q} / ${sb.q}`;
+    $('winner').classList.add('show');
+  }, 1000);
+
+  S.running=false;
+}
+
+function resetBattle(){
+  $('winner').classList.remove('show');
+  $('arena').style.display='none';
+  $('setup').style.display='block';
+  $('btn-next').textContent='▶ СЛЕДУЮЩИЙ';
+  $('btn-next').disabled=true;
+}
+</script>
+</body>
+</html>
