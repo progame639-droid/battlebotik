@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({ model, messages, max_tokens: 120 })
+        body: JSON.stringify({ model, messages, max_tokens: 100, temperature: 0.9, frequency_penalty: 0.7 })
       });
       const d = await r.json();
       if (!r.ok) return res.status(r.status).json({ error: d.error?.message || 'Groq error' });
@@ -42,7 +42,8 @@ export default async function handler(req, res) {
           preamble: system,
           chat_history: chatHistory,
           message: lastMsg?.content || '',
-          max_tokens: 120
+          max_tokens: 100,
+          temperature: 0.8
         })
       });
       const d = await r.json();
