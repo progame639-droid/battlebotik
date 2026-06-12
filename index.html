@@ -197,7 +197,7 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
 <header>
   <div class="logo">AI <em>BATTLE</em> ARENA</div>
-  <div class="hdr-right"><span class="dot"></span> OPENROUTER ENGINE</div>
+  <div class="hdr-right"><span class="dot"></span> GROQ · COHERE · GEMINI</div>
 </header>
 
 <!-- ══════════════ SETUP ══════════════ -->
@@ -216,16 +216,29 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
     <span class="chip" onclick="setTopic(this)">🐱 Кошки лучше собак</span>
     <span class="chip" onclick="setTopic(this)">☕ Кофе vs чай</span>
     <span class="chip" onclick="setTopic(this)">💤 8 часов сна — миф?</span>
-  </div>    </div>
+  </div>
+
+  <div class="fighters-row">
+    <div class="fighter-col a">
+      <div class="fighter-heading a">⚡ БОЕЦ A</div>
+      <div class="fighter-card a">
+        <div class="fc-emoji">⚡</div>
+        <div>
+          <div class="fc-name a">Groq Llama</div>
+          <div class="fc-model">llama-3.3-70b-versatile · Groq</div>
+          <div class="fc-trait">Философ-провокатор. Ломает шаблоны, задаёт острые вопросы, отвечает резко и коротко.</div>
+        </div>
+      </div>
+    </div>
     <div class="vs-col">VS</div>
     <div class="fighter-col b">
       <div class="fighter-heading b">🔥 БОЕЦ B</div>
       <div class="fighter-card b">
-        <div class="fc-emoji">🐉</div>
+        <div class="fc-emoji">🪸</div>
         <div>
-          <div class="fc-name b">Qwen3 80B</div>
-          <div class="fc-model">qwen/qwen3-next-80b-a3b-instruct:free</div>
-          <div class="fc-trait">Академичный аналитик. Оперирует данными, ссылается на исследования, строит системные многоуровневые аргументы. Многословен, но убедителен.</div>
+          <div class="fc-name b">Cohere Command R+</div>
+          <div class="fc-model">command-r-plus · Cohere</div>
+          <div class="fc-trait">Академичный аналитик. Оперирует данными, строит системные многоуровневые аргументы.</div>
         </div>
       </div>
     </div>
@@ -233,11 +246,11 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
   <!-- ── JUDGE ── -->
   <div class="judge-info">
-    <div class="judge-emoji">⚖️</div>
+    <div class="judge-emoji">♊</div>
     <div>
       <div class="judge-label">Арбитр</div>
-      <div class="judge-name">GPT-oss-120B</div>
-      <div class="judge-model">openai/gpt-oss-120b:free — выносит финальный вердикт</div>
+      <div class="judge-name">Gemini 2.0 Flash</div>
+      <div class="judge-model">gemini-2.0-flash · Google — выносит финальный вердикт</div>
     </div>
   </div>
 
@@ -263,12 +276,12 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
   <div class="scoreboard">
     <div class="sc-side">
-      <div class="sc-name a">🦙 Llama 3.2</div>
+      <div class="sc-name a">⚡ Groq Llama</div>
       <div class="sc-pts a" id="sc-pts-a">0</div>
     </div>
     <div class="sc-sep">:</div>
     <div class="sc-side right">
-      <div class="sc-name b">🐉 Qwen3</div>
+      <div class="sc-name b">🪸 Cohere R+</div>
       <div class="sc-pts b" id="sc-pts-b">0</div>
     </div>
     <div class="sc-bar-wrap"><div class="sc-bar" id="sc-bar"></div></div>
@@ -290,17 +303,17 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
       <div class="scard">
         <div class="scard-title">// УЧАСТНИКИ</div>
         <div class="fighter-mini">
-          <div class="fmini-ava a">🦙</div>
+          <div class="fmini-ava a">⚡</div>
           <div>
-            <div class="fmini-name a">Llama 3.3 70B</div>
-            <div class="fmini-sub">Философ-провокатор<br>meta-llama · Groq · free</div>
+            <div class="fmini-name a">Groq Llama 70B</div>
+            <div class="fmini-sub">Философ-провокатор<br>Meta · Groq</div>
           </div>
         </div>
         <div class="fighter-mini">
-          <div class="fmini-ava b">🐉</div>
+          <div class="fmini-ava b">🪸</div>
           <div>
-            <div class="fmini-name b">Qwen3 80B</div>
-            <div class="fmini-sub">Академичный аналитик<br>Alibaba · qwen · free</div>
+            <div class="fmini-name b">Cohere Command R+</div>
+            <div class="fmini-sub">Академичный аналитик<br>Cohere · command-r-plus</div>
           </div>
         </div>
       </div>
@@ -351,8 +364,8 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
     <div class="wtitle">ПОБЕДИТЕЛЬ БАТЛА</div>
     <div class="wname" id="w-name">—</div>
     <div class="wstats-grid">
-      <div class="wstat"><div class="wstat-val sv-a" id="w-w-a">0</div><div class="wstat-lbl">Llama — слова</div></div>
-      <div class="wstat"><div class="wstat-val sv-b" id="w-w-b">0</div><div class="wstat-lbl">Qwen — слова</div></div>
+      <div class="wstat"><div class="wstat-val sv-a" id="w-w-a">0</div><div class="wstat-lbl">Groq — слова</div></div>
+      <div class="wstat"><div class="wstat-val sv-b" id="w-w-b">0</div><div class="wstat-lbl">Cohere — слова</div></div>
       <div class="wstat"><div class="wstat-val" id="w-agree" style="color:var(--green)">0/0</div><div class="wstat-lbl">согласий A/B</div></div>
       <div class="wstat"><div class="wstat-val" id="w-int" style="color:#a37af7">0/0</div><div class="wstat-lbl">перебиваний A/B</div></div>
       <div class="wstat"><div class="wstat-val" id="w-agg" style="color:var(--red)">0%/0%</div><div class="wstat-lbl">агрессия A/B</div></div>
@@ -372,33 +385,36 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
 
 const FIGHTER_A = {
-  name: 'Llama 3.2',
-  emoji: '🦙',
-  model: 'meta-llama/llama-3.2-3b-instruct:free',
+  name: 'Groq Llama',
+  emoji: '⚡',
+  provider: 'groq',
+  model: 'llama-3.3-70b-versatile',
   style: `Ты — философ-провокатор в споре. Твои правила:
 — Никогда не принимай «очевидное», всегда ломай шаблон
 — Задавай один острый встречный вопрос, который рушит аргумент оппонента
 — Начинай ответ с «Но подождите...», «Стоп.», «А разве не наоборот?» или «Сама постановка ошибочна:»
-— Говори резко, коротко, 2-3 предложения
+— Говори резко, коротко — строго до 20 слов
 — Используй неожиданные аналогии из других областей`
 };
 
 const FIGHTER_B = {
-  name: 'Qwen3',
-  emoji: '🐉',
-  model: 'qwen/qwen3-next-80b-a3b-instruct:free',
+  name: 'Cohere R+',
+  emoji: '🪸',
+  provider: 'cohere',
+  model: 'command-r-plus',
   style: `Ты — академичный аналитик в споре. Твои правила:
 — Оперируй данными и ссылайся на «исследования» и «статистику»
 — Строй многоуровневые аргументы: причина → механизм → следствие
 — Иногда можешь частично согласиться с оппонентом, но затем разгромить главный тезис
 — Используй фразы «Согласно исследованиям...», «Данные показывают...», «Если рассмотреть системно...»
-— 3-5 предложений, каждое несёт новый аргумент`
+— Строго до 20 слов в ответе`
 };
 
 const JUDGE = {
-  name: 'GPT-oss-120B',
-  emoji: '⚖️',
-  model: 'openai/gpt-oss-120b:free'
+  name: 'Gemini 2.0 Flash',
+  emoji: '♊',
+  provider: 'gemini',
+  model: 'gemini-2.0-flash'
 };
 
 // ── Словари метрик ──────────────────────────────────────
@@ -453,7 +469,7 @@ function updateStats(side, text){
 }
 
 // ── OpenRouter API ──────────────────────────────────────
-async function callOR(model, systemPrompt, messages) {
+async function callOR(fighter, systemPrompt, messages) {
   const msgs = [{role:'system', content:systemPrompt}, ...messages];
 
   const r = await fetch('/api/battle', {
@@ -461,13 +477,13 @@ async function callOR(model, systemPrompt, messages) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ model, messages: msgs })
+    body: JSON.stringify({ provider: fighter.provider, model: fighter.model, messages: msgs })
   });
 
   const d = await r.json();
-  if (!r.ok) throw new Error(d.error?.message || `OpenRouter error ${r.status}`);
-  if (!d.choices?.[0]?.message?.content) throw new Error('Пустой ответ от модели. Возможно, модель перегружена — попробуй ещё раз.');
-  return d.choices[0].message.content;
+  if (!r.ok) throw new Error(d.error || `Ошибка ${r.status}`);
+  if (!d.text) throw new Error('Пустой ответ от модели. Возможно, модель перегружена — попробуй ещё раз.');
+  return d.text;
 }
 
 // ── Chat render ─────────────────────────────────────────
@@ -550,7 +566,7 @@ async function playRound() {
   // ─ Fighter A ─
   try {
     addTyping(FIGHTER_A.emoji+' '+FIGHTER_A.name+' думает…', '--blue');
-    let textA = await callOR(FIGHTER_A.model, FIGHTER_A.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию.`, buildMsgs('A'));
+    let textA = await callOR(FIGHTER_A, FIGHTER_A.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию. Отвечай строго до 20 слов.`, buildMsgs('A'));
     rmTyping();
     textA = textA.trim().replace(/^\[.*?\]:\s*/,'');
     S.history.push({name:FIGHTER_A.name, text:textA});
@@ -559,14 +575,14 @@ async function playRound() {
     updateStats('A', textA);
     S.scoreA += Math.min(4, Math.ceil(words(textA)/12));
     updateScore();
-  } catch(e){ rmTyping(); toast('Ошибка Llama: '+e.message); S.running=false; return; }
+  } catch(e){ rmTyping(); toast('Ошибка Groq: '+e.message); S.running=false; return; }
 
   await new Promise(r=>setTimeout(r,900));
 
   // ─ Fighter B ─
   try {
     addTyping(FIGHTER_B.emoji+' '+FIGHTER_B.name+' думает…', '--red');
-    let textB = await callOR(FIGHTER_B.model, FIGHTER_B.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию.`, buildMsgs('B'));
+    let textB = await callOR(FIGHTER_B, FIGHTER_B.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию. Отвечай строго до 20 слов.`, buildMsgs('B'));
     rmTyping();
     textB = textB.trim().replace(/^\[.*?\]:\s*/,'');
     S.history.push({name:FIGHTER_B.name, text:textB});
@@ -575,7 +591,7 @@ async function playRound() {
     updateStats('B', textB);
     S.scoreB += Math.min(4, Math.ceil(words(textB)/12));
     updateScore();
-  } catch(e){ rmTyping(); toast('Ошибка Qwen: '+e.message); S.running=false; return; }
+  } catch(e){ rmTyping(); toast('Ошибка Cohere: '+e.message); S.running=false; return; }
 
   S.running=false;
   $('btn-judge').disabled=false;
@@ -612,7 +628,7 @@ ${FIGHTER_B.name}: слов=${sb.w}, вопросов=${sb.q}, восклица�
   let verdict;
   try {
     verdict = await callOR(
-      JUDGE.model,
+      JUDGE,
       'Ты — беспристрастный арбитр дебатов. Оценивай логику аргументов, убедительность и риторику. Будь объективен.',
       [{role:'user', content:prompt}]
     );
@@ -620,7 +636,7 @@ ${FIGHTER_B.name}: слов=${sb.w}, вопросов=${sb.q}, восклица�
 
   rmTyping();
   verdict = verdict.trim();
-  addMsg('J', '⚖️ АРБИТР (GPT-oss-120B)', verdict, false);
+  addMsg('J', '♊ АРБИТР (Gemini 2.0 Flash)', verdict, false);
 
   // Определяем победителя
   const vl=verdict.toLowerCase();
