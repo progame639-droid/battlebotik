@@ -732,7 +732,7 @@ async function playRound() {
   if (S.topics.length > 1) {
     const topicSep = document.createElement('div');
     topicSep.className = 'round-sep';
-    topicSep.innerHTML = \`РАУНД \${S.curRound} · \${S.topic}\`;
+    topicSep.innerHTML = `РАУНД ${S.curRound} · ${S.topic}`;
     $('chat-feed').appendChild(topicSep);
   } else {
     addSep(S.curRound);
