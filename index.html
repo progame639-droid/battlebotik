@@ -283,12 +283,12 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
   <div class="scoreboard">
     <div class="sc-side">
-      <div class="sc-name a">⚡ Groq Llama</div>
+      <div class="sc-name a" id="sc-name-a">⚡ Groq Llama</div>
       <div class="sc-pts a" id="sc-pts-a">0</div>
     </div>
     <div class="sc-sep">:</div>
     <div class="sc-side right">
-      <div class="sc-name b">🪸 Cohere A</div>
+      <div class="sc-name b" id="sc-name-b">🪸 Cohere A</div>
       <div class="sc-pts b" id="sc-pts-b">0</div>
     </div>
     <div class="sc-bar-wrap"><div class="sc-bar" id="sc-bar"></div></div>
@@ -309,17 +309,17 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
       <div class="scard">
         <div class="scard-title">// УЧАСТНИКИ</div>
         <div class="fighter-mini">
-          <div class="fmini-ava a">⚡</div>
+          <div class="fmini-ava a" id="fmini-ava-a">⚡</div>
           <div>
-            <div class="fmini-name a">Groq Llama 70B</div>
-            <div class="fmini-sub">Философ-провокатор<br>Meta · Groq</div>
+            <div class="fmini-name a" id="fmini-name-a">Groq Llama 70B</div>
+            <div class="fmini-sub" id="fmini-sub-a">Философ-провокатор<br>Meta · Groq</div>
           </div>
         </div>
         <div class="fighter-mini">
-          <div class="fmini-ava b">🪸</div>
+          <div class="fmini-ava b" id="fmini-ava-b">🪸</div>
           <div>
-            <div class="fmini-name b">Cohere Command A</div>
-            <div class="fmini-sub">Академичный аналитик<br>Cohere · command-a-03-2025</div>
+            <div class="fmini-name b" id="fmini-name-b">Cohere Command A</div>
+            <div class="fmini-sub" id="fmini-sub-b">Академичный аналитик<br>Cohere · command-a-03-2025</div>
           </div>
         </div>
       </div>
@@ -390,35 +390,107 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 // ════════════════════════════════════════════════════════
 
 
-const FIGHTER_A = {
-  name: 'Groq Llama',
-  emoji: '⚡',
-  provider: 'groq',
-  model: 'llama-3.3-70b-versatile',
-  style: `Ты участник живого дебата. Твой стиль — провокационный философ.
-Правила:
-1. ВСЕГДА отвечай именно на последний аргумент оппонента — разбери его конкретно
-2. Находи слабое место в логике оппонента и атакуй именно его
-3. Используй неожиданные аналогии или контрпримеры из реальной жизни
-4. Не повторяй то, что уже говорил раньше — каждая реплика должна развивать спор
-5. Пиши живо и коротко — 1-2 острых предложения, максимум 20 слов
-6. Не используй шаблонные зачинки каждый раз — варьируй стиль`
-};
+// ── Пул персонажей ──────────────────────────────────────
+const PERSONAS = [
+  {
+    id: 'skeptic',
+    name: 'Скептик',
+    emoji: '🧐',
+    trait: 'Не верит ни во что. Требует доказательств на каждый чих.',
+    style: `Ты законченный скептик в споре. Ни один аргумент не кажется тебе достаточно доказанным.
+— Всегда требуй источник или доказательство на слова оппонента
+— Указывай на логические дыры и допущения без фактов
+— Говори сухо, немного презрительно, без эмоций
+— Иногда используй фразы: "И где доказательства?", "Это не аргумент", "Звучит как предположение"`
+  },
+  {
+    id: 'romantic',
+    name: 'Романтик',
+    emoji: '🌹',
+    trait: 'Видит красоту и смысл во всём. Спорит через чувства и образы.',
+    style: `Ты романтик-идеалист в споре. Веришь в человека, красоту и высший смысл.
+— Отвечай через образы, метафоры и эмоции
+— Апеллируй к человеческому опыту и чувствам, а не к цифрам
+— Говори с воодушевлением, иногда почти поэтично
+— Иногда используй фразы: "Но разве не в этом смысл?", "Сердце знает больше"`
+  },
+  {
+    id: 'technocrat',
+    name: 'Технократ',
+    emoji: '🤖',
+    trait: 'Всё решают данные и алгоритмы. Эмоции — баг системы.',
+    style: `Ты технократ в споре. Мир — это система, которую можно оптимизировать.
+— Оперируй конкретными цифрами, метриками, KPI
+— Эмоциональные аргументы отметай как нерелевантные
+— Говори чётко, структурированно, без лишних слов
+— Иногда используй фразы: "Данные говорят иначе", "Это неоптимально", "Посмотрим на метрики"`
+  },
+  {
+    id: 'poet',
+    name: 'Поэт',
+    emoji: '🖊️',
+    trait: 'Говорит образами. Каждый аргумент — маленькая история.',
+    style: `Ты поэт-философ в споре. Мыслишь метафорами и парадоксами.
+— Отвечай через неожиданные образы и аналогии
+— Находи красивые парадоксы в словах оппонента
+— Говори загадочно, нестандартно, иногда задавай риторические вопросы
+— Иногда используй фразы: "Это как...", "Помнишь, как..."`
+  },
+  {
+    id: 'general',
+    name: 'Генерал',
+    emoji: '🎖️',
+    trait: 'Мыслит стратегически. Любой спор — это битва.',
+    style: `Ты боевой генерал в споре. Каждый диалог — тактическое сражение.
+— Анализируй аргументы оппонента как позиции противника и атакуй слабые места
+— Говори коротко, жёстко, по-военному
+— Используй военные метафоры: фланг, отступление, капитуляция
+— Иногда используй фразы: "Это слабая позиция", "Ваш аргумент окружён", "Сдавайтесь"`
+  },
+  {
+    id: 'cynic',
+    name: 'Циник',
+    emoji: '😏',
+    trait: 'Всё видит насквозь. За любым аргументом — чья-то выгода.',
+    style: `Ты прожжённый циник в споре. За каждым красивым словом ты видишь корысть.
+— Разоблачай скрытые мотивы в словах оппонента
+— Говори с иронией и лёгким сарказмом
+— Всё своди к реальным интересам: деньги, власть, эго
+— Иногда используй фразы: "Кому это выгодно?", "Красиво звучит, но...", "Давай честно"`
+  },
+  {
+    id: 'idealist',
+    name: 'Идеалист',
+    emoji: '✨',
+    trait: 'Верит что мир можно сделать лучше. Спорит с огнём в глазах.',
+    style: `Ты идеалист-реформатор в споре. Веришь что всё можно изменить к лучшему.
+— Апеллируй к ценностям, справедливости и потенциалу людей
+— Не принимай циничные аргументы — борись с ними
+— Говори страстно и убедительно
+— Иногда используй фразы: "Мы можем лучше", "Это несправедливо", "Представь если..."`
+  },
+  {
+    id: 'pragmatist',
+    name: 'Прагматик',
+    emoji: '🔧',
+    trait: 'Теория — мусор. Важно только то, что работает.',
+    style: `Ты прагматик в споре. Тебя интересует только одно: работает это или нет.
+— Отметай абстрактные рассуждения, требуй конкретики
+— Приводи примеры из реальной практики
+— Говори по-деловому, без воды
+— Иногда используй фразы: "На практике это не работает", "Конкретный пример?", "К делу"`
+  }
+];
 
-const FIGHTER_B = {
-  name: 'Cohere A',
-  emoji: '🪸',
-  provider: 'cohere',
-  model: 'command-a-03-2025',
-  style: `Ты участник живого дебата. Твой стиль — аналитик с данными.
-Правила:
-1. ВСЕГДА отвечай на конкретный аргумент оппонента из его последней реплики
-2. Приводи конкретные факты, цифры или логические цепочки в поддержку своей позиции
-3. Если оппонент прав в чём-то частично — признай это, но покажи где он ошибается в главном
-4. Не повторяй уже сказанное — каждая реплика должна добавлять новый аргумент
-5. Пиши конкретно и коротко — 1-2 содержательных предложения, максимум 20 слов
-6. Варьируй стиль — не начинай каждую реплику одинаково`
-};
+// ── Выбор случайных персонажей ───────────────────────────
+function pickPersonas() {
+  const shuffled = [...PERSONAS].sort(() => Math.random() - 0.5);
+  return [shuffled[0], shuffled[1]];
+}
+
+// Текущие персонажи — заполняются при startBattle
+let FIGHTER_A = { name:'?', emoji:'?', provider:'groq',   model:'llama-3.3-70b-versatile' };
+let FIGHTER_B = { name:'?', emoji:'?', provider:'cohere', model:'command-a-03-2025' };
 
 const JUDGE = {
   name: 'Groq Llama Judge',
@@ -531,14 +603,12 @@ function rmTyping(){ const t=$('typing'); if(t) t.remove(); }
 
 // ── Build messages for each fighter ────────────────────
 function buildMsgs(forSide) {
-  const myName    = forSide==='A' ? FIGHTER_A.name : FIGHTER_B.name;
-  const oppName   = forSide==='A' ? FIGHTER_B.name : FIGHTER_A.name;
-
-  // Берём только последние 6 реплик чтобы не перегружать контекст
-  const recent = S.history.slice(-6);
+  const myName  = forSide==='A' ? FIGHTER_A.name : FIGHTER_B.name;
+  const oppName = forSide==='A' ? FIGHTER_B.name : FIGHTER_A.name;
+  const recent  = S.history.slice(-6);
 
   if (!recent.length) {
-    return [{role:'user', content:`Тема спора: "${S.topic}". Открой свою позицию — 1-2 предложения.`}];
+    return [{role:'user', content:`Тема спора: "${S.topic}". Открой свою позицию одним-двумя предложениями, ровно 15-20 слов.`}];
   }
 
   const msgs = [];
@@ -546,18 +616,33 @@ function buildMsgs(forSide) {
     msgs.push({ role: h.name===myName ? 'assistant' : 'user', content: h.text });
   }
 
-  // Если последняя реплика наша — напоминаем ждать оппонента (не должно случаться, но страховка)
   if (msgs[msgs.length-1].role === 'assistant') {
-    msgs.push({role:'user', content:`${oppName} ещё не ответил. Подожди.`});
+    msgs.push({role:'user', content:'Жди ответа оппонента.'});
     return msgs;
   }
 
-  // Явно указываем на что именно нужно ответить
   const lastOpp = recent.filter(h => h.name === oppName).pop();
-  if (lastOpp) {
-    msgs.push({role:'user', content:`${oppName} только что сказал: "${lastOpp.text}" — ответь именно на этот аргумент. Коротко, по делу.`});
+  if (!lastOpp) return msgs;
+
+  // ── Динамическая агрессия ──
+  // Считаем "силу" последнего аргумента оппонента
+  const oppText = lastOpp.text.toLowerCase();
+  const hasStats    = /\d+%|\d+ раз|исследовани|данные|факт/.test(oppText);
+  const hasQuestion = oppText.includes('?');
+  const hasAggro    = AGGRO.some(w => oppText.includes(w));
+  const oppStrength = (hasStats ? 1 : 0) + (hasQuestion ? 1 : 0) + (hasAggro ? 1 : 0);
+
+  // Агрессия если оппонент сильный И рандом 40%
+  const goAggressive = oppStrength >= 2 && Math.random() < 0.4;
+
+  let instruction = `${oppName} сказал: "${lastOpp.text}"
+
+Ответь именно на этот аргумент. Ровно 15-20 слов, не больше и не меньше.`;
+  if (goAggressive) {
+    instruction += ' Оппонент давит сильно — можешь обострить тон, отвечай жёстче обычного.';
   }
 
+  msgs.push({role:'user', content: instruction});
   return msgs;
 }
 
@@ -566,9 +651,24 @@ async function startBattle() {
   const topic = $('topic-input').value.trim();
   if (!topic) { toast('Введи тему спора!'); return; }
 
+  // ── Выбираем случайных персонажей ──
+  const [pA, pB] = pickPersonas();
+  FIGHTER_A = { ...FIGHTER_A, name: pA.name, emoji: pA.emoji, style: pA.style, trait: pA.trait };
+  FIGHTER_B = { ...FIGHTER_B, name: pB.name, emoji: pB.emoji, style: pB.style, trait: pB.trait };
+
+  // ── Обновляем карточки бойцов в арене ──
+  $('sc-name-a').textContent = FIGHTER_A.emoji + ' ' + FIGHTER_A.name;
+  $('sc-name-b').textContent = FIGHTER_B.emoji + ' ' + FIGHTER_B.name;
+  $('fmini-name-a').textContent = FIGHTER_A.name;
+  $('fmini-name-b').textContent = FIGHTER_B.name;
+  $('fmini-ava-a').textContent  = FIGHTER_A.emoji;
+  $('fmini-ava-b').textContent  = FIGHTER_B.emoji;
+  $('fmini-sub-a').innerHTML    = FIGHTER_A.trait + '<br>Meta · Groq';
+  $('fmini-sub-b').innerHTML    = FIGHTER_B.trait + '<br>Cohere';
+
   S.topic = topic;
   S.maxRounds = +$('rounds-sl').value;
-  S.roundDur  = +$('dur-sl').value;   // seconds per round
+  S.roundDur  = +$('dur-sl').value;
   S.curRound  = 0;
   S.history   = [];
   S.scoreA = 0; S.scoreB = 0;
@@ -583,6 +683,12 @@ async function startBattle() {
   $('chat-feed').innerHTML = '';
   $('btn-judge').disabled = true;
   updateScore(); updateStats('A',''); updateStats('B','');
+
+  // Показываем кто против кого
+  const ann = document.createElement('div');
+  ann.className = 'round-sep';
+  ann.innerHTML = FIGHTER_A.emoji + ' ' + FIGHTER_A.name + ' &nbsp;VS&nbsp; ' + FIGHTER_B.emoji + ' ' + FIGHTER_B.name;
+  $('chat-feed').appendChild(ann);
 
   await playRound();
 }
@@ -612,7 +718,7 @@ async function playRound() {
 
     try {
       addTyping(fighter.emoji + ' ' + fighter.name + ' печатает…', colorVar);
-      const sysPrompt = fighter.style + `\n\nТема спора: "${S.topic}".\nОТВЕЧАЙ ТОЛЬКО НА ПОСЛЕДНИЙ АРГУМЕНТ ОППОНЕНТА. Максимум 20 слов. Не повторяй то, что уже говорил.`;
+      const sysPrompt = fighter.style + `\n\nТема спора: "${S.topic}".\nВАЖНО: пиши ровно 15-20 слов — не меньше и не больше. Отвечай на аргумент оппонента. Не повторяй то, что уже говорил.`;
       const text = await callOR(fighter, sysPrompt, buildMsgs(turn));
       rmTyping();
 
