@@ -256,8 +256,15 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
   <div class="rounds-row">
     <label>Раундов:</label>
-    <input type="range" id="rounds-sl" min="2" max="6" value="3" oninput="$('rounds-val').textContent=this.value">
-    <span class="rounds-val" id="rounds-val">3</span>
+    <input type="range" id="rounds-sl" min="1" max="3" value="2" oninput="$('rounds-val').textContent=this.value">
+    <span class="rounds-val" id="rounds-val">2</span>
+    <span style="color:var(--text-dim);font-size:12px">раунда &nbsp;·</span>
+    <label>Длительность раунда:</label>
+    <select id="dur-sl" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer">
+      <option value="30">30 сек</option>
+      <option value="60" selected>60 сек</option>
+      <option value="90">90 сек</option>
+    </select>
     <span style="color:var(--text-dim);font-size:12px">+ арбитр в конце</span>
   </div>
 
@@ -291,10 +298,9 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
     <div class="chat-col">
       <div class="chat-feed" id="chat-feed"></div>
       <div class="chat-controls">
-        <div class="round-lbl">Раунд <strong id="cur-rnd">1</strong> / <strong id="max-rnd">3</strong></div>
+        <div class="round-lbl">Раунд <strong id="cur-rnd">1</strong> / <strong id="max-rnd">2</strong> &nbsp;·&nbsp; <span id="timer-lbl" style="color:var(--gold);font-family:var(--mono)">⏱ —</span></div>
         <div class="ctrl-btns">
           <button class="btn-ctrl gold" id="btn-judge" onclick="callJudge()" disabled>⚖️ АРБИТР</button>
-          <button class="btn-ctrl blue" id="btn-next" onclick="nextRound()" disabled>▶ СЛЕДУЮЩИЙ</button>
         </div>
       </div>
     </div>
@@ -424,7 +430,7 @@ const INTERRUPT_STARTS = ['нет,','нет!','стоп','подождите','�
 
 // ── State ───────────────────────────────────────────────
 let S = {
-  topic:'', maxRounds:3, curRound:0,
+  topic:'', maxRounds:2, roundDur:60, curRound:0,
   history:[], scoreA:0, scoreB:0,
   statsA:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0},
   statsB:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0},
@@ -538,79 +544,110 @@ function buildMsgs(forSide) {
 async function startBattle() {
   const topic = $('topic-input').value.trim();
   if (!topic) { toast('Введи тему спора!'); return; }
-  
 
-  S.topic=topic; S.maxRounds=+$('rounds-sl').value;
-  S.curRound=0; S.history=[];
-  S.scoreA=0; S.scoreB=0;
-  S.statsA={w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
-  S.statsB={w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
+  S.topic = topic;
+  S.maxRounds = +$('rounds-sl').value;
+  S.roundDur  = +$('dur-sl').value;   // seconds per round
+  S.curRound  = 0;
+  S.history   = [];
+  S.scoreA = 0; S.scoreB = 0;
+  S.statsA = {w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
+  S.statsB = {w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
 
-  $('setup').style.display='none';
-  $('arena').style.display='block';
-  $('a-topic').textContent=topic;
-  $('cur-rnd').textContent=1; $('max-rnd').textContent=S.maxRounds;
-  $('chat-feed').innerHTML='';
-  $('btn-next').disabled=true; $('btn-judge').disabled=true;
+  $('setup').style.display = 'none';
+  $('arena').style.display = 'block';
+  $('a-topic').textContent = topic;
+  $('cur-rnd').textContent = 1;
+  $('max-rnd').textContent = S.maxRounds;
+  $('chat-feed').innerHTML = '';
+  $('btn-judge').disabled = true;
   updateScore(); updateStats('A',''); updateStats('B','');
 
   await playRound();
 }
 
 async function playRound() {
-  S.running=true; S.curRound++;
-  $('cur-rnd').textContent=S.curRound;
-  $('btn-next').disabled=true; $('btn-judge').disabled=true;
+  S.running = true;
+  S.curRound++;
+  $('cur-rnd').textContent = S.curRound;
+  $('btn-judge').disabled = true;
   addSep(S.curRound);
 
-  // ─ Fighter A ─
-  try {
-    addTyping(FIGHTER_A.emoji+' '+FIGHTER_A.name+' думает…', '--blue');
-    let textA = await callOR(FIGHTER_A, FIGHTER_A.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию. Отвечай строго до 20 слов.`, buildMsgs('A'));
-    rmTyping();
-    textA = textA.trim().replace(/^\[.*?\]:\s*/,'');
-    S.history.push({name:FIGHTER_A.name, text:textA});
-    const intA = countInterrupt(textA);
-    addMsg('A', FIGHTER_A.emoji+' '+FIGHTER_A.name, textA, intA>0);
-    updateStats('A', textA);
-    S.scoreA += Math.min(4, Math.ceil(words(textA)/12));
-    updateScore();
-  } catch(e){ rmTyping(); toast('Ошибка Groq: '+e.message); S.running=false; return; }
+  const roundEnd = Date.now() + S.roundDur * 1000;
 
-  await new Promise(r=>setTimeout(r,900));
+  // Countdown ticker
+  const ticker = setInterval(() => {
+    const left = Math.max(0, Math.ceil((roundEnd - Date.now()) / 1000));
+    $('timer-lbl').textContent = left > 0 ? `⏱ ${left}с` : '⏱ 0с';
+    if (left === 0) clearInterval(ticker);
+  }, 500);
 
-  // ─ Fighter B ─
-  try {
-    addTyping(FIGHTER_B.emoji+' '+FIGHTER_B.name+' думает…', '--red');
-    let textB = await callOR(FIGHTER_B, FIGHTER_B.style+`\n\nТема спора: "${S.topic}". Отстаивай свою позицию. Отвечай строго до 20 слов.`, buildMsgs('B'));
-    rmTyping();
-    textB = textB.trim().replace(/^\[.*?\]:\s*/,'');
-    S.history.push({name:FIGHTER_B.name, text:textB});
-    const intB = countInterrupt(textB);
-    addMsg('B', FIGHTER_B.emoji+' '+FIGHTER_B.name, textB, intB>0);
-    updateStats('B', textB);
-    S.scoreB += Math.min(4, Math.ceil(words(textB)/12));
-    updateScore();
-  } catch(e){ rmTyping(); toast('Ошибка Cohere: '+e.message); S.running=false; return; }
+  // Alternate turns until time runs out
+  let turn = 'A'; // A goes first
+  while (Date.now() < roundEnd) {
+    const fighter = turn === 'A' ? FIGHTER_A : FIGHTER_B;
+    const colorVar = turn === 'A' ? '--blue' : '--red';
+    const errorLabel = turn === 'A' ? 'Groq' : 'Cohere';
 
-  S.running=false;
-  $('btn-judge').disabled=false;
+    try {
+      addTyping(fighter.emoji + ' ' + fighter.name + ' печатает…', colorVar);
+      const text = await callOR(
+        fighter,
+        fighter.style + `\n\nТема спора: "${S.topic}". Отвечай строго до 15 слов. Не повторяй себя.`,
+        buildMsgs(turn)
+      );
+      rmTyping();
+
+      // Check time again — если пока ждали ответа время вышло, не показываем
+      const clean = text.trim().replace(/^\[.*?\]:\s*/, '');
+      S.history.push({ name: fighter.name, text: clean });
+      const hasInt = countInterrupt(clean);
+      addMsg(turn, fighter.emoji + ' ' + fighter.name, clean, hasInt > 0);
+      updateStats(turn, clean);
+
+      if (turn === 'A') S.scoreA += Math.min(3, Math.ceil(words(clean) / 8));
+      else              S.scoreB += Math.min(3, Math.ceil(words(clean) / 8));
+      updateScore();
+
+    } catch(e) {
+      rmTyping();
+      toast('Ошибка ' + errorLabel + ': ' + e.message);
+      // Short pause before retry / switching
+      await new Promise(r => setTimeout(r, 2000));
+    }
+
+    turn = turn === 'A' ? 'B' : 'A';
+
+    // Small pause between messages for readability
+    const gap = Math.min(600, roundEnd - Date.now());
+    if (gap > 0) await new Promise(r => setTimeout(r, gap));
+  }
+
+  clearInterval(ticker);
+  $('timer-lbl').textContent = '✓ РАУНД';
+  S.running = false;
+
   if (S.curRound < S.maxRounds) {
-    $('btn-next').disabled=false;
-  } else {
-    $('btn-next').textContent='✓ РАУНДЫ СЫГРАНЫ';
-    $('btn-next').disabled=true;
+    // Auto-start next round after 1.5s pause
+    await new Promise(r => setTimeout(r, 1500));
+    if (S.curRound < S.maxRounds) await playRound();
+  }
+
+  if (S.curRound >= S.maxRounds) {
+    $('btn-judge').disabled = false;
+    $('timer-lbl').textContent = '🏁 ФИНАЛ';
   }
 }
 
-async function nextRound() { if(S.running) return; await playRound(); }
+async function nextRound() { /* kept for compatibility */ }
+
 
 async function callJudge() {
   if(S.running) return;
-  S.running=true; $('btn-judge').disabled=true; $('btn-next').disabled=true;
+  S.running=true; $('btn-judge').disabled=true;
 
   const sep=document.createElement('div'); sep.className='round-sep'; sep.textContent='⚖️ ВЕРДИКТ АРБИТРА'; $('chat-feed').appendChild(sep);
-  addTyping('⚖️ Арбитр (GPT-oss-120B) анализирует…', '--gold');
+  addTyping('⚖️ Арбитр анализирует…', '--gold');
 
   const sa=S.statsA, sb=S.statsB;
   const transcript = S.history.map(h=>`[${h.name}]: ${h.text}`).join('\n\n');
@@ -669,8 +706,7 @@ function resetBattle(){
   $('winner').classList.remove('show');
   $('arena').style.display='none';
   $('setup').style.display='block';
-  $('btn-next').textContent='▶ СЛЕДУЮЩИЙ';
-  $('btn-next').disabled=true;
+  $('timer-lbl').textContent='⏱ —';
 }
 </script>
 </body>
