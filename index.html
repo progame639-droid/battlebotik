@@ -246,11 +246,11 @@ header{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;alig
 
   <!-- ── JUDGE ── -->
   <div class="judge-info">
-    <div class="judge-emoji">♊</div>
+    <div class="judge-emoji">⚖️</div>
     <div>
       <div class="judge-label">Арбитр</div>
-      <div class="judge-name">Gemini 2.0 Flash</div>
-      <div class="judge-model">gemini-2.0-flash · Google — выносит финальный вердикт</div>
+      <div class="judge-name">Groq Llama 3.3</div>
+      <div class="judge-model">llama-3.3-70b-versatile · Groq — выносит финальный вердикт</div>
     </div>
   </div>
 
@@ -411,10 +411,10 @@ const FIGHTER_B = {
 };
 
 const JUDGE = {
-  name: 'Gemini 2.0 Flash',
-  emoji: '♊',
-  provider: 'gemini',
-  model: 'gemini-2.0-flash'
+  name: 'Groq Llama Judge',
+  emoji: '⚖️',
+  provider: 'groq',
+  model: 'llama-3.3-70b-versatile'
 };
 
 // ── Словари метрик ──────────────────────────────────────
@@ -636,7 +636,7 @@ ${FIGHTER_B.name}: слов=${sb.w}, вопросов=${sb.q}, восклица�
 
   rmTyping();
   verdict = verdict.trim();
-  addMsg('J', '♊ АРБИТР (Gemini 2.0 Flash)', verdict, false);
+  addMsg('J', '⚖️ АРБИТР (Groq Llama)', verdict, false);
 
   // Определяем победителя
   const vl=verdict.toLowerCase();
