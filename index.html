@@ -1,962 +1,113 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Battle Arena Pro</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-
-:root {
-  --bg: #030307;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #140f2b 0%, #030307 70%);
-  --surface: rgba(13, 13, 23, 0.45);
-  --surface-hover: rgba(20, 20, 35, 0.6);
-  --surface-active: rgba(25, 25, 45, 0.7);
-  --border: rgba(255, 255, 255, 0.06);
-  --border-glow: rgba(79, 142, 247, 0.2);
-  
-  --blue: #3b82f6;
-  --blue-glow: rgba(59, 130, 246, 0.4);
-  --blue-dim: rgba(59, 130, 246, 0.06);
-  
-  --red: #ef4444;
-  --red-glow: rgba(239, 68, 68, 0.4);
-  --red-dim: rgba(239, 68, 68, 0.06);
-  
-  --gold: #f59e0b;
-  --gold-dim: rgba(245, 158, 11, 0.08);
-  --green: #10b981;
-  
-  --text: #f3f4f6;
-  --text-dim: #9ca3af;
-  --sans: 'Plus Jakarta Sans', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
-  --blur: blur(16px);
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  background: var(--bg);
-  background-image: var(--bg-gradient);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  overflow-x: hidden;
-  letter-spacing: -0.01em;
-}
-
-/* Декоративная фоновая сетка */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: -1;
-}
-
-header {
-  border-bottom: 1px solid var(--border);
-  padding: 18px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(3, 3, 7, 0.5);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-.logo {
-  font-family: var(--sans);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #fff 40%, var(--text-dim));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.logo em {
-  background: linear-gradient(135deg, #ffdb58, var(--gold));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-style: normal;
-  font-weight: 900;
-}
-.hdr-right {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.03);
-  padding: 6px 14px;
-  border-radius: 30px;
-  border: 1px solid var(--border);
-}
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 10px var(--green);
-  animation: blink 2s infinite;
-}
-@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.9)}}
-
-/* SETUP CONTAINER */
-#setup { max-width: 900px; margin: 50px auto; padding: 0 24px; }
-.section-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  color: var(--blue);
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.topic-wrap { margin-bottom: 20px; }
-.topic-wrap textarea {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 15px;
-  padding: 18px;
-  border-radius: 16px;
-  outline: none;
-  transition: all .25s ease;
-  resize: vertical;
-  min-height: 100px;
-  line-height: 1.6;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-}
-.topic-wrap textarea:focus {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), inset 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; }
-.chip {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  font-size: 13px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.chip:hover {
-  background: var(--surface-hover);
-  border-color: rgba(255,255,255,0.15);
-  color: var(--text);
-  transform: translateY(-1px);
-}
-
-/* FIGHTERS ROW */
-.fighters-row {
-  display: grid;
-  grid-template-columns: 1fr 60px 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-  gap: 0;
-}
-.fighter-col {
-  background: var(--surface);
-  padding: 28px;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.fighter-col:hover {
-  transform: translateY(-2px);
-}
-.fighter-col.a:hover { box-shadow: 0 10px 30px rgba(59, 130, 246, 0.08); }
-.fighter-col.b:hover { box-shadow: 0 10px 30px rgba(239, 68, 68, 0.08); }
-
-.vs-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--mono);
-  font-size: 14px;
-  color: #fff;
-  font-weight: 800;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, var(--blue), var(--red));
-  border-radius: 50%;
-  margin: 0 auto;
-  box-shadow: 0 0 20px rgba(255,255,255,0.1);
-}
-
-.fighter-heading {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-.fighter-heading.a { color: var(--blue); text-shadow: 0 0 10px var(--blue-glow); }
-.fighter-heading.b { color: var(--red); text-shadow: 0 0 10px var(--red-glow); }
-
-.fighter-card { display: flex; flex-direction: column; gap: 12px; }
-.fc-emoji { font-size: 36px; margin-bottom: 4px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.1)); }
-.fc-name { font-weight: 700; font-size: 18px; letter-spacing: -0.3px; }
-.fc-name.a { color: #fff; }
-.fc-name.b { color: #fff; }
-.fc-model { font-family: var(--mono); font-size: 11px; color: var(--text-dim); background: rgba(255,255,255,0.04); padding: 4px 8px; border-radius: 6px; display: inline-block; width: fit-content; margin-top: 2px;}
-.fc-trait { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-top: 4px;}
-
-/* JUDGE INFO */
-.judge-info {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px 24px;
-  margin-bottom: 30px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-}
-.judge-emoji { font-size: 28px; }
-.judge-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 2px; }
-.judge-name { font-size: 15px; font-weight: 700; color: #fff; }
-.judge-model { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
-
-/* CONTROLS */
-.rounds-row {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin-bottom: 36px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-}
-.rounds-row label { font-size: 14px; color: var(--text-dim); font-weight: 500; }
-.rounds-row input[type=range] {
-  accent-color: var(--blue);
-  width: 140px;
-  cursor: pointer;
-  height: 6px;
-  border-radius: 3px;
-}
-.rounds-val { font-family: var(--mono); font-weight: 700; color: var(--blue); font-size: 16px; min-width: 20px; }
-
-.btn-start {
-  width: 100%;
-  padding: 20px;
-  background: linear-gradient(135deg, #4f8ef7, #7b4ff7);
-  border: none;
-  color: #fff;
-  font-family: var(--sans);
-  font-size: 16px;
-  letter-spacing: 1px;
-  font-weight: 700;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-transform: uppercase;
-  box-shadow: 0 4px 20px rgba(123, 79, 247, 0.3);
-}
-.btn-start:hover:not(:disabled)) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(79, 142, 247, 0.5);
-  filter: brightness(1.1);
-}
-.btn-start:disabled { opacity: .3; cursor: not-allowed; transform: none; box-shadow: none; }
-
-/* ══════════════ ARENA ══════════════ */
-#arena { display: none; padding: 40px 24px 100px; max-width: 1300px; margin: 0 auto; }
-.arena-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-.arena-topic-lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--blue); text-transform: uppercase; margin-bottom: 4px; }
-.arena-topic-text { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-
-.btn-reset {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  padding: 10px 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all .2s;
-  text-transform: uppercase;
-}
-.btn-reset:hover { background: rgba(255,255,255,0.1); border-color: var(--text-dim); }
-
-/* SCOREBOARD */
-.scoreboard {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 30px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 24px 40px;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-}
-.sc-side { display: flex; flex-direction: column; gap: 4px; }
-.sc-side.right { align-items: flex-end; }
-.sc-name { font-size: 15px; font-weight: 700; color: var(--text-dim); }
-.sc-name.a { color: var(--blue); }
-.sc-name.b { color: var(--red); }
-.sc-pts { font-family: var(--mono); font-size: 46px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
-.sc-pts.a { color: #fff; text-shadow: 0 0 20px var(--blue-glow); }
-.sc-pts.b { color: #fff; text-shadow: 0 0 20px var(--red-glow); }
-.sc-sep { font-family: var(--mono); font-size: 24px; color: var(--text-dim); opacity: 0.5; }
-.sc-bar-wrap { grid-column: 1/-1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-.sc-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--red)); width: 50%; transition: width .6s cubic-bezier(0.4, 0, 0.2, 1); }
-
-/* BATTLE GRID */
-.battle-grid { display: grid; grid-template-columns: 1fr 350px; gap: 24px; align-items: start; }
-.chat-col { display: flex; flex-direction: column; }
-.chat-feed {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px 24px 0 0;
-  min-height: 520px;
-  max-height: 620px;
-  overflow-y: auto;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-}
-.chat-feed::-webkit-scrollbar { width: 4px; }
-.chat-feed::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
-/* MESSAGES STYLE */
-.msg { display: flex; flex-direction: column; gap: 6px; animation: fadeUp .35s cubic-bezier(0.4, 0, 0.2, 1); }
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.msg.right { align-items: flex-end; }
-.msg.center { align-items: center; width: 100%; }
-
-.msg-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: var(--mono); color: var(--text-dim); }
-.msg-meta.right { flex-direction: row-reverse; }
-.tag { padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 10px; text-transform: uppercase; font-family: var(--mono); }
-.tag-a { background: var(--blue-dim); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
-.tag-b { background: var(--red-dim); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
-.tag-j { background: var(--gold-dim); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
-
-.bubble { padding: 16px 20px; font-size: 14.5px; line-height: 1.6; max-width: 85%; border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-.bubble.a { background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-top-left-radius: 4px; color: #e0f2fe; }
-.bubble.b { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-top-right-radius: 4px; color: #fee2e2; }
-.bubble.j { background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 20px; color: #fef3c7; width: 100%; max-width: 100%; }
-
-.int-badge { display: inline-block; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #c084fc; font-family: var(--mono); font-size: 9px; padding: 3px 8px; border-radius: 6px; }
-
-.round-sep { display: flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin: 10px 0; width: 100%; opacity: 0.6; }
-.round-sep::before, .round-sep::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
-
-.chat-controls {
-  background: rgba(15, 15, 27, 0.6);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 24px 24px;
-  padding: 20px 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-}
-.round-lbl { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
-.round-lbl strong { color: #fff; }
-
-.btn-ctrl.gold {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  border: none; color: #000; font-family: var(--sans); font-size: 12px; font-weight: 700;
-  padding: 12px 24px; border-radius: 12px; cursor: pointer; text-transform: uppercase;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); transition: all 0.2s;
-}
-.btn-ctrl.gold:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); filter: brightness(1.1); }
-.btn-ctrl:disabled { opacity: 0.25; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-/* SIDEBAR CARD */
-.sidebar { display: flex; flex-direction: column; gap: 20px; }
-.scard { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 24px; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
-.scard-title { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); font-weight: 700; margin-bottom: 20px; }
-
-.fighter-mini { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.fighter-mini:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-.fmini-ava { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-.fmini-ava.a { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); }
-.fmini-ava.b { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
-.fmini-name { font-weight: 700; font-size: 14px; }
-.fmini-name.a { color: #fff; }
-.fmini-name.b { color: #fff; }
-.fmini-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; line-height: 1.5; }
-
-/* LIVE ANALYTICS */
-.stat-item { margin-bottom: 18px; }
-.stat-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.stat-lbl { color: var(--text-dim); font-weight: 500; }
-.stat-vals { display: flex; gap: 12px; font-family: var(--mono); font-weight: 700; }
-.sv-a { color: #60a5fa; }
-.sv-b { color: #f87171; }
-.minibar { height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-.minibar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--red)); border-radius: 10px; transition: width .5s ease; }
-.stat-hint { font-size: 11px; color: var(--text-dim); margin-top: 14px; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 14px; opacity: 0.7; }
-
-/* WINNER MODAL */
-#winner { display: none; position: fixed; inset: 0; background: rgba(3, 3, 7, 0.85); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-#winner.show { display: flex; }
-.wbox { background: rgba(20, 20, 35, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 32px; padding: 44px; max-width: 680px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: pop .4s cubic-bezier(0.34, 1.56, 0.64, 1); max-height: 90vh; overflow-y: auto; }
-@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-.wcrown { font-size: 64px; margin-bottom: 14px; filter: drop-shadow(0 0 15px rgba(245,158,11,0.3)); }
-.wtitle { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--gold); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-.wname { font-size: 34px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px; }
-.wname.a { color: #fff; text-shadow: 0 0 20px var(--blue-glow); }
-.wname.b { color: #fff; text-shadow: 0 0 20px var(--red-glow); }
-.wname.tie { color: var(--gold); }
-.wverdict { font-size: 14.5px; color: #d1d5db; line-height: 1.75; margin-bottom: 30px; text-align: left; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid var(--border); max-height: 220px; overflow-y: auto; }
-
-.wstats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 30px; }
-.wstat { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 14px; text-align: center; }
-.wstat-val { font-family: var(--mono); font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-.wstat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-
-.btn-new { background: linear-gradient(135deg, var(--blue), #7b4ff7); border: none; color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 700; padding: 16px 36px; border-radius: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
-.btn-new:hover { filter: brightness(1.1); transform: translateY(-1px); }
-
-.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(220, 38, 38, 0.9); border: 1px solid #ef4444; backdrop-filter: blur(8px); color: #fff; padding: 14px 28px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 400; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-.toast.show { display: block; animation: slideUp .3s ease; }
-@keyframes slideUp{from{opacity:0;transform:translate(-50(), 20px)}to{opacity:1;transform:translate(-50%,0)}}
-
-.typing-row { display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-family: var(--mono); font-size: 12px; color: var(--text-dim); background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; }
-.dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: dot 1.4s infinite; margin: 0 1px; }
-.dots span:nth-child(2){animation-delay:.2s}
-.dots span:nth-child(3){animation-delay:.4s}
-@keyframes dot{0%,80%,100%{opacity:.2}40%{opacity:1}}
-
-@media(max-width:960px){
-  .battle-grid { grid-template-columns: 1fr; }
-  .sidebar { margin-top: 10px; }
-}
-@media(max-width:720px){
-  .fighters-row { grid-template-columns: 1fr; gap: 16px; }
-  .vs-col { transform: rotate(90deg); margin: 10px auto; }
-  .wstats-grid { grid-template-columns: repeat(2, 1fr); }
-  header { padding: 14px 20px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI BATTLE ARENA</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Фикс для инпутов времени и цифр, чтобы текст ВСЕГДА был виден */
+        input[type="time"], input[type="number"], select {
+            color-scheme: dark; /* Заставляет браузер рендерить внутренние элементы в темной теме */
+            color: #ffffff !important;
+            background-color: #1f2937 !important;
+        }
+        /* Кастомный скроллбар для колонок чата, чтобы выглядело опрятно */
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-950 text-gray-100 font-sans h-screen flex flex-col overflow-hidden">
 
-<header>
-  <div class="logo">AI <em>BATTLE</em> ARENA</div>
-  <div class="hdr-right"><span class="dot"></span> GROQ · COHERE · GEMINI</div>
-</header>
+    <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between shrink-0">
+        <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r fancy-text from-blue-400 to-purple-500">
+            🤖 AI BATTLE ARENA
+        </h1>
+        <div class="text-xs text-gray-400 font-mono">v2.0 Beta</div>
+    </header>
 
-<div id="setup">
+    <main class="flex flex-1 overflow-hidden">
+        
+        <section class="flex-1 grid grid-cols-1 md:grid-cols-2 p-4 gap-4 h-full overflow-hidden">
+            
+            <div class="bg-gray-900/50 border border-gray-800 rounded-xl flex flex-col h-full overflow-hidden">
+                <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+                    <span class="font-bold text-blue-400">🔥 Боец #1</span>
+                    <select class="bg-gray-800 text-sm rounded px-2 py-1 border border-gray-700 focus:outline-none focus:border-blue-500">
+                        <option>Google Gemini</option>
+                        <option>ChatGPT 4o</option>
+                        <option>Claude 3.5 Sonnet</option>
+                    </select>
+                </div>
+                <div class="chat-scroll flex-1 p-4 overflow-y-auto space-y-4 text-sm bg-gray-950/40">
+                    <div class="bg-blue-950/30 border border-blue-900/50 p-3 rounded-lg max-w-[85%]">
+                        <p class="text-xs text-blue-400 font-semibold mb-1">Gemini:</p>
+                        Привет! Я готов к баттлу. Жду твой промпт в панели справа.
+                    </div>
+                    </div>
+            </div>
 
-  <div class="section-label">// ТЕМА СПОРА</div>
-  <div class="topic-wrap">
-    <textarea id="topic-input" rows="3" placeholder="Одна тема: ИИ заменит программистов?&#10;&#10;Несколько тем (каждый раунд — своя тема):&#10;Раунд 1: ИИ заменит программистов?&#10;Раунд 2: А теперь — ИИ создал эту программу. Кто кого заменил?"></textarea>
-    <div style="font-size:11px;color:var(--text-dim);font-family:var(--mono);margin-top:8px; opacity: 0.7">💡 Разделяй темы новой строкой — каждый раунд получит свою уникальную тему.</div>
-  </div>
-  <div class="chips">
-    <span class="chip" onclick="setTopic(this)">☀️ Утренняя vs вечерняя пробежка</span>
-    <span class="chip" onclick="setTopic(this)">🤖 ИИ заменит программистов?</span>
-    <span class="chip" onclick="setTopic(this)">🏙️ Город vs деревня</span>
-    <span class="chip" onclick="setTopic(this)">📚 Бумажные книги vs электронные</span>
-    <span class="chip" onclick="setTopic(this)">🚀 Марс vs Луна — что важнее?</span>
-    <span class="chip" onclick="setTopic(this)">🐱 Кошки лучше собак</span>
-    <span class="chip" onclick="setTopic(this)">☕ Кофе vs чай</span>
-    <span class="chip" onclick="setTopic(this)">💤 8 часов сна — миф?</span>
-  </div>
+            <div class="bg-gray-900/50 border border-gray-800 rounded-xl flex flex-col h-full overflow-hidden">
+                <div class="p-3 bg-gray-900 border-b border-gray-800 flex justify-between items-center">
+                    <span class="font-bold text-purple-400">🔥 Боец #2</span>
+                    <select class="bg-gray-800 text-sm rounded px-2 py-1 border border-gray-700 focus:outline-none focus:border-purple-500">
+                        <option>Cohere Command R</option>
+                        <option>Llama 3.1</option>
+                        <option>Mistral Large</option>
+                    </select>
+                </div>
+                <div class="chat-scroll flex-1 p-4 overflow-y-auto space-y-4 text-sm bg-gray-950/40">
+                    <div class="bg-purple-950/30 border border-purple-900/50 p-3 rounded-lg max-w-[85%]">
+                        <p class="text-xs text-purple-400 font-semibold mb-1">Cohere:</p>
+                        Погнали, покажем на что способны локальные и облачные веса!
+                    </div>
+                    </div>
+            </div>
 
-  <div class="fighters-row">
-    <div class="fighter-col a">
-      <div class="fighter-heading a">⚡ БОЕЦ A</div>
-      <div class="fighter-card a">
-        <div class="fc-emoji">⚡</div>
-        <div>
-          <div class="fc-name a">Groq Llama</div>
-          <div class="fc-model">llama-3.3-70b-versatile</div>
-          <div class="fc-trait">Философ-провокатор. Ломает шаблоны, задаёт острые вопросы, отвечает резко и коротко.</div>
-        </div>
-      </div>
-    </div>
-    <div class="vs-col">VS</div>
-    <div class="fighter-col b">
-      <div class="fighter-heading b">🔥 БОЕЦ B</div>
-      <div class="fighter-card b">
-        <div class="fc-emoji">🪸</div>
-        <div>
-          <div class="fc-name b">Cohere Command A</div>
-          <div class="fc-model">command-a-03-2025</div>
-          <div class="fc-trait">Академичный аналитик. Оперирует данными, строит системные многоуровневые аргументы.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+        </section>
 
-  <div class="judge-info">
-    <div class="judge-emoji">⚖️</div>
-    <div>
-      <div class="judge-label">Арбитр</div>
-      <div class="judge-name">Groq Llama 3.3</div>
-      <div class="judge-model">llama-3.3-70b-versatile — выносит финальный вердикт на основе логики дебатов</div>
-    </div>
-  </div>
+        <aside class="w-80 bg-gray-900 border-l border-gray-800 p-4 flex flex-col justify-between shrink-0 h-full">
+            
+            <div class="space-y-4">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Настройки боя</h3>
+                
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Время раунда / Тайм-аут</label>
+                    <input type="time" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-purple-500" value="00:30">
+                </div>
 
-  <div class="rounds-row">
-    <label>Раундов:</label>
-    <input type="range" id="rounds-sl" min="1" max="3" value="2" oninput="$('rounds-val').textContent=this.value">
-    <span class="rounds-val" id="rounds-val">2</span>
-    <span style="color:var(--text-dim);font-size:13px;margin-right:10px;">раунда</span>
-    
-    <label>Длительность:</label>
-    <select id="dur-sl" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;outline:none;">
-      <option value="30">30 сек</option>
-      <option value="60" selected>60 сек</option>
-      <option value="90">90 сек</option>
-    </select>
-  </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Количество эпох / итераций</label>
+                    <input type="number" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-purple-500" value="1" min="1">
+                </div>
+            </div>
 
-  <button class="btn-start" onclick="startBattle()">⚡ НАЧАТЬ БОЙ</button>
-</div>
+            <div class="space-y-3 mt-auto">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Твой боевой промпт</label>
+                    <textarea class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none h-28" placeholder="Напиши тему для спора ботов..."></textarea>
+                </div>
 
-<div id="arena">
-  <div class="arena-top">
-    <div>
-      <div class="arena-topic-lbl">// ТЕМА БАТЛА</div>
-      <div class="arena-topic-text" id="a-topic"></div>
-    </div>
-    <button class="btn-reset" onclick="resetBattle()">↩ НОВЫЙ БОЙ</button>
-  </div>
+                <button class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-purple-900/20 active:scale-[0.98]">
+                    🚀 ЗАПУСТИТЬ БИТВУ
+                </button>
+                
+                <button class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold py-2 px-4 rounded-xl border border-gray-700 transition text-sm">
+                    🧹 Сбросить арену
+                </button>
+            </div>
 
-  <div class="scoreboard">
-    <div class="sc-side">
-      <div class="sc-name a" id="sc-name-a">⚡ Groq Llama</div>
-      <div class="sc-pts a" id="sc-pts-a">0</div>
-    </div>
-    <div class="sc-sep">:</div>
-    <div class="sc-side right">
-      <div class="sc-name b" id="sc-name-b">🪸 Cohere A</div>
-      <div class="sc-pts b" id="sc-pts-b">0</div>
-    </div>
-    <div class="sc-bar-wrap"><div class="sc-bar" id="sc-bar"></div></div>
-  </div>
+        </aside>
 
-  <div class="battle-grid">
-    <div class="chat-col">
-      <div class="chat-feed" id="chat-feed"></div>
-      <div class="chat-controls">
-        <div class="round-lbl">Раунд <strong id="cur-rnd">1</strong> / <strong id="max-rnd">2</strong> &nbsp;·&nbsp; <span id="timer-lbl" style="color:var(--gold);font-family:var(--mono);font-weight:700">⏱ —</span></div>
-        <div class="ctrl-btns">
-          <button class="btn-ctrl gold" id="btn-judge" onclick="callJudge()" disabled>⚖️ АРБИТР</button>
-        </div>
-      </div>
-    </div>
+    </main>
 
-    <div class="sidebar">
-      <div class="scard">
-        <div class="scard-title">// УЧАСТНИКИ</div>
-        <div class="fighter-mini">
-          <div class="fmini-ava a" id="fmini-ava-a">⚡</div>
-          <div>
-            <div class="fmini-name a" id="fmini-name-a">Groq Llama 70B</div>
-            <div class="fmini-sub" id="fmini-sub-a">Философ-провокатор<br>Meta · Groq</div>
-          </div>
-        </div>
-        <div class="fighter-mini">
-          <div class="fmini-ava b" id="fmini-ava-b">🪸</div>
-          <div>
-            <div class="fmini-name b" id="fmini-name-b">Cohere Command A</div>
-            <div class="fmini-sub" id="fmini-sub-b">Академичный аналитик<br>Cohere · command-a-03-2025</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="scard">
-        <div class="scard-title">// АНАЛИТИКА — LIVE</div>
-
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">📝 Слова</span><span class="stat-vals"><span class="sv-a" id="st-w-a">0</span><span class="sv-b" id="st-w-b">0</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-w" style="width:50%"></div></div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">❓ Вопросы</span><span class="stat-vals"><span class="sv-a" id="st-q-a">0</span><span class="sv-b" id="st-q-b">0</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-q" style="width:50%"></div></div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">🤝 Согласия</span><span class="stat-vals"><span class="sv-a" id="st-ag-a">0</span><span class="sv-b" id="st-ag-b">0</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-ag" style="width:50%"></div></div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">⚡ Перебивания</span><span class="stat-vals"><span class="sv-a" id="st-int-a">0</span><span class="sv-b" id="st-int-b">0</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-int" style="width:50%"></div></div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">🔥 Агрессия</span><span class="stat-vals"><span class="sv-a" id="st-a-a">0%</span><span class="sv-b" id="st-a-b">0%</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-a" style="width:50%"></div></div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-top"><span class="stat-lbl">❗ Восклицания</span><span class="stat-vals"><span class="sv-a" id="st-e-a">0</span><span class="sv-b" id="st-e-b">0</span></span></div>
-          <div class="minibar"><div class="minibar-fill" id="mb-e" style="width:50%"></div></div>
-        </div>
-
-        <div class="stat-hint">
-          🤝 согласия: «да», «верно», «согласен»…<br>
-          ⚡ перебивания: старт с «Нет,», «Стоп», «Но ведь»…<br>
-          🔥 агрессия: доля провокационных фраз
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="winner">
-  <div class="wbox">
-    <div class="wcrown" id="w-crown">🏆</div>
-    <div class="wtitle">ПОБЕДИТЕЛЬ БАТЛА</div>
-    <div class="wname" id="w-name">—</div>
-    <div class="wstats-grid">
-      <div class="wstat"><div class="wstat-val sv-a" id="w-w-a">0</div><div class="wstat-lbl">A — слова</div></div>
-      <div class="wstat"><div class="wstat-val sv-b" id="w-w-b">0</div><div class="wstat-lbl">B — слова</div></div>
-      <div class="wstat"><div class="wstat-val" id="w-agree" style="color:var(--green)">0/0</div><div class="wstat-lbl">согласий</div></div>
-      <div class="wstat"><div class="wstat-val" id="w-int" style="color:#c084fc">0/0</div><div class="wstat-lbl">перебиваний</div></div>
-      <div class="wstat"><div class="wstat-val" id="w-agg" style="color:var(--red)">0%/0%</div><div class="wstat-lbl">агрессия</div></div>
-      <div class="wstat"><div class="wstat-val" id="w-q" style="color:var(--gold)">0/0</div><div class="wstat-lbl">вопросов</div></div>
-    </div>
-    <div class="wverdict" id="w-verdict"></div>
-    <button class="btn-new" onclick="resetBattle()">⚡ НОВЫЙ БОЙ</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// Вся JS-логика полностью сохранена без изменений для обеспечения работоспособности бэкенда.
-const PERSONAS = [
-  { id: 'skeptic', name: 'Скептик', emoji: '🧐', trait: 'Не верит ни во что. Требует доказательств на каждый чих.', style: `Ты законченный скептик в споре. Ни один аргумент не кажется тебе достаточно доказанным. — Всегда требуй источник или доказательство на слова оппонента — Указывай на логические дыры и допущения без фактов — Говори сухо, немного презрительно, без эмоций — Иногда используй фразы: "И где доказательства?", "Это не аргумент", "Звучит как предположение"` },
-  { id: 'romantic', name: 'Романтик', emoji: '🌹', trait: 'Видит красоту и смысл во всём. Спорит через чувства и образы.', style: `Ты романтик-идеалист в споре. Веришь в человека, красоту и высший смысл. — Отвечай через образы, метафоры и эмоции — Апеллируй к человеческому опыту и чувствам, а не к цифрам — Говори с воодушевлением, иногда почти поэтично — Иногда используй фразы: "Но разве не в этом смысл?", "Сердце знает больше"` },
-  { id: 'technocrat', name: 'Технократ', emoji: '🤖', trait: 'Всё решают данные и алгоритмы. Эмоции — баг системы.', style: `Ты технократ в споре. Мир — это система, которую можно оптимизировать. — Оперируй конкретными цифрами, метриками, KPI — Эмоциональные аргументы отметай как нерелевантные — Говори чётко, структурированно, без лишних слов — Иногда используй фразы: "Данные говорят иначе", "Это неоптимально", "Посмотрим на метрики"` },
-  { id: 'poet', name: 'Поэт', emoji: '🖊️', trait: 'Говорить образами. Каждый аргумент — маленькая история.', style: `Ты поэт-философ в споре. Мыслишь метафорами и парадоксами. — Отвечай через неожиданные образы и аналогии — Находи красивые парадоксы в словах оппонента — Говори загадочно, нестандартно, иногда задавай риторические вопросы — Иногда используй фразы: "Это как...", "Помнишь, как..."` },
-  { id: 'general', name: 'Генерал', emoji: '🎖️', trait: 'Мыслит стратегически. Любой спор — это битва.', style: `Ты боевой генерал в споре. Каждый диалог — тактическое сражение. — Анализируй аргументы оппонента как позиции противника и атакуй слабые места — Говори коротко, жёстко, по-военному — Используй военные метафоры: фланг, отступление, капитуляция — Иногда используй фразы: "Это слабая позиция", "Ваш аргумент окружён", "Сдавайтесь"` },
-  { id: 'cynic', name: 'Циник', emoji: '😏', trait: 'Всё видит насквозь. За любым аргументом — чья-то выгода.', style: `Ты прожжённый циник в споре. За каждым красивым словом ты видишь корысть. — Разоблачай скрытые мотивы в словах оппонента — Говори с иронией и лёгким сарказмом — Всё своди к реальным интересам: деньги, власть, эго — Иногда используй фразы: "Кому это выгодно?", "Красиво звучит, но...", "Давай честно"` },
-  { id: 'idealist', name: 'Идеалист', emoji: '✨', trait: 'Верит что мир можно сделать лучше. Спорит с огнём в глазах.', style: `Ты идеалист-реформатор в споре. Веришь что всё можно изменить к лучшему. — Апеллируй к ценностям, справедливости и потенциалу людей — Не принимай циничные аргументы — борись с ними — Говори страстно и убедительно — Иногда используй фразы: "Мы можем лучше", "Это несправедливо", "Представь если..."` },
-  { id: 'pragmatist', name: 'Прагматик', emoji: '🔧', trait: 'Теория — мусор. Важно только то, что работает.', style: `Ты прагматик в споре. Тебя интересует только одно: работает это или нет. — Отметай абстрактные рассуждения, требуй конкретики — Приводи примеры из реальной практики — Говори по-деловому, без воды — Иногда используй фразы: "На практике это не работает", "Конкретный пример?", "К делу"` }
-];
-
-function pickPersonas() {
-  const arr = [...PERSONAS];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return [arr[0], arr[1]];
-}
-
-let FIGHTER_A = { name:'?', emoji:'?', provider:'groq',   model:'llama-3.3-70b-versatile' };
-let FIGHTER_B = { name:'?', emoji:'?', provider:'cohere', model:'command-a-03-2025' };
-
-const JUDGE = { name: 'Groq Llama Judge', emoji: '⚖️', provider: 'groq', model: 'llama-3.3-70b-versatile' };
-
-const AGGRO = ['неверно','ошибка','неправильно','абсурд','провал','слабо','наивно','заблуждение','напротив','опровергаю','неубедительно','противоречит','глупо','бессмысленно','чушь','вздор','примитивно'];
-const AGREE = ['согласен','согласна','соглашусь','верно','правильно','действительно','справедливо','именно','точно','разумеется','конечно','да,','да.','да!','признаю','правда','справедливое замечание'];
-const INTERRUPT_STARTS = ['нет,','нет!','стоп','подождите','но ведь','но подождите','позвольте','однако,','но нет','неверно','ошибаетесь','не так','позвольте не','но стоп','сама постановка'];
-
-let S = { topic:'', topics:[], maxRounds:2, roundDur:60, curRound:0, history:[], roundSummaries:[], scoreA:0, scoreB:0, statsA:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0}, statsB:{w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0}, running:false };
-
-const $ = id => document.getElementById(id);
-const now = () => new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
-const words = t => t.trim().split(/\s+/).filter(Boolean).length;
-const qs  = t => (t.match(/\?/g)||[]).length;
-const exs = t => (t.match(/!/g)||[]).length;
-const bw  = (a,b) => a+b===0 ? 50 : Math.round(a/(a+b)*100);
-
-const countAggro = t => {
-  const w = t.toLowerCase().split(/\s+/);
-  return Math.round(w.filter(x => AGGRO.some(a => x.includes(a))).length / Math.max(w.length,1) * 100);
-};
-const countAgrees    = t => AGREE.filter(w => t.toLowerCase().includes(w)).length;
-const countInterrupt = t => INTERRUPT_STARTS.some(s => t.trim().toLowerCase().startsWith(s)) ? 1 : 0;
-
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),4000); }
-function setTopic(el){ $('topic-input').value = el.textContent.replace(/^.{2}/,'').trim(); }
-
-function updateScore(){
-  $('sc-pts-a').textContent=S.scoreA;
-  $('sc-pts-b').textContent=S.scoreB;
-  const tot=S.scoreA+S.scoreB;
-  $('sc-bar').style.width=(tot?Math.round(S.scoreA/tot*100):50)+'%';
-}
-
-function updateStats(side, text){
-  const st = side==='A' ? S.statsA : S.statsB;
-  if(text){ st.w+=words(text); st.q+=qs(text); st.e+=exs(text); st.n++; st.agg=Math.round((st.agg*(st.n-1)+countAggro(text))/st.n); st.agrees+=countAgrees(text); st.interrupts+=countInterrupt(text); }
-  const sa=S.statsA, sb=S.statsB;
-  $('st-w-a').textContent=sa.w;       $('st-w-b').textContent=sb.w;       $('mb-w').style.width=bw(sa.w,sb.w)+'%';
-  $('st-q-a').textContent=sa.q;       $('st-q-b').textContent=sb.q;       $('mb-q').style.width=bw(sa.q,sb.q)+'%';
-  $('st-e-a').textContent=sa.e;       $('st-e-b').textContent=sb.e;       $('mb-e').style.width=bw(sa.e,sb.e)+'%';
-  $('st-a-a').textContent=sa.agg+'%'; $('st-a-b').textContent=sb.agg+'%'; $('mb-a').style.width=bw(sa.agg,sb.agg)+'%';
-  $('st-ag-a').textContent=sa.agrees; $('st-ag-b').textContent=sb.agrees; $('mb-ag').style.width=bw(sa.agrees,sb.agrees)+'%';
-  $('st-int-a').textContent=sa.interrupts; $('st-int-b').textContent=sb.interrupts; $('mb-int').style.width=bw(sa.interrupts,sb.interrupts)+'%';
-}
-
-async function callOR(fighter, systemPrompt, messages) {
-  const msgs = [{role:'system', content:systemPrompt}, ...messages];
-  const r = await fetch('/api/battle', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider: fighter.provider, model: fighter.model, messages: msgs })
-  });
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error || `Ошибка ${r.status}`);
-  if (!d.text) throw new Error('Пустой ответ от модели.');
-  if (d.usedProvider && d.usedProvider.includes('fallback')) {
-    const fp = d.usedProvider.replace('-fallback','');
-    toast(`⚡ Нагрузка — автопереключение на ${fp === 'gemini' ? 'Gemini' : 'Cohere'}`);
-  }
-  return d.text;
-}
-
-function addMsg(who, name, text, hasInterrupt) {
-  const feed = $('chat-feed');
-  const side   = who==='A'?'left':who==='B'?'right':'center';
-  const tagCls = who==='A'?'tag-a':who==='B'?'tag-b':'tag-j';
-  const bubCls = who==='A'?'a':who==='B'?'b':'j';
-  const metaDir = who==='B'?'right':'';
-  const intBadge = hasInterrupt ? '<span class="int-badge">⚡ ПЕРЕБИЛ</span>' : '';
-  const div = document.createElement('div');
-  div.className = 'msg '+side;
-  div.innerHTML = `
-    <div class="msg-meta ${metaDir}">
-      <span class="tag ${tagCls}">${name}</span>
-      ${intBadge}
-      <span class="msg-time">${now()}</span>
-    </div>
-    <div class="bubble ${bubCls}">${text.replace(/\n/g,'<br>')}</div>`;
-  feed.appendChild(div);
-  feed.scrollTop = feed.scrollHeight;
-}
-
-function addSep(n){ const d=document.createElement('div'); d.className='round-sep'; d.textContent=`РАУНД ${n}`; $('chat-feed').appendChild(d); }
-
-function addTyping(label, colorVar) {
-  rmTyping();
-  const d = document.createElement('div');
-  d.id='typing'; d.className='msg center';
-  d.innerHTML=`<div class="typing-row"><span style="color:var(${colorVar});font-family:var(--mono);font-size:11px; font-weight:600">${label}</span>&nbsp;<div class="dots"><span></span><span></span><span></span></div></div>`;
-  $('chat-feed').appendChild(d);
-  $('chat-feed').scrollTop = $('chat-feed').scrollHeight;
-}
-function rmTyping(){ const t=$('typing'); if(t) t.remove(); }
-
-function buildMsgs(forSide) {
-  const myName  = forSide==='A' ? FIGHTER_A.name : FIGHTER_B.name;
-  const oppName = forSide==='A' ? FIGHTER_B.name : FIGHTER_A.name;
-  const recent  = S.history.slice(-6);
-
-  if (!recent.length) {
-    const roundNum = S.curRound;
-    const prevCtx = S.roundSummaries.length > 0 ? ' Контекст предыдущих раундов: ' + S.roundSummaries.map(rs => `Раунд ${rs.round} (тема: "${rs.topic}"): ${rs.summary}`).join('. ') : '';
-    return [{role:'user', content:`Раунд ${roundNum}. Тема этого раунда: "${S.topic}".${prevCtx} Открой свою позицию одним-двумя предложениями, ровно 15-20 слов.`}];
-  }
-
-  const msgs = [];
-  for (const h of recent) { msgs.push({ role: h.name===myName ? 'assistant' : 'user', content: h.text }); }
-  if (msgs[msgs.length-1].role === 'assistant') { msgs.push({role:'user', content:'Жди ответа оппонента.'}); return msgs; }
-
-  const lastOpp = recent.filter(h => h.name === oppName).pop();
-  if (!lastOpp) return msgs;
-
-  const oppText = lastOpp.text.toLowerCase();
-  const hasStats    = /\d+%|\d+ раз|исследовани|данные|факт/.test(oppText);
-  const hasQuestion = oppText.includes('?');
-  const hasAggro    = AGGRO.some(w => oppText.includes(w));
-  const oppStrength = (hasStats ? 1 : 0) + (hasQuestion ? 1 : 0) + (hasAggro ? 1 : 0);
-  const goAggressive = oppStrength >= 2 && Math.random() < 0.4;
-
-  let instruction = `${oppName} сказал: "${lastOpp.text}"\n\nОтветь именно на этот аргумент. Ровно 15-20 слов, не больше и не меньше.`;
-  if (goAggressive) { instruction += ' Оппонент давит сильно — можешь обострить тон, отвечай жёстче обычного.'; }
-
-  msgs.push({role:'user', content: instruction});
-  return msgs;
-}
-
-function parseTopics(raw) {
-  return raw.split('\n').map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/^раунд\s*\d+\s*[:.)\-]?\s*/i, '').trim()).filter(l => l.length > 0);
-}
-
-async function startBattle() {
-  const raw = $('topic-input').value.trim();
-  if (!raw) { toast('Введи тему спора!'); return; }
-  const topics = parseTopics(raw);
-  if (!topics.length) { toast('Введи тему спора!'); return; }
-
-  const [pA, pB] = pickPersonas();
-  FIGHTER_A = { ...FIGHTER_A, name: pA.name, emoji: pA.emoji, style: pA.style, trait: pA.trait };
-  FIGHTER_B = { ...FIGHTER_B, name: pB.name, emoji: pB.emoji, style: pB.style, trait: pB.trait };
-
-  $('sc-name-a').textContent = FIGHTER_A.emoji + ' ' + FIGHTER_A.name;
-  $('sc-name-b').textContent = FIGHTER_B.emoji + ' ' + FIGHTER_B.name;
-  $('fmini-name-a').textContent = FIGHTER_A.name;
-  $('fmini-name-b').textContent = FIGHTER_B.name;
-  $('fmini-ava-a').textContent  = FIGHTER_A.emoji;
-  $('fmini-ava-b').textContent  = FIGHTER_B.emoji;
-  $('fmini-sub-a').innerHTML    = FIGHTER_A.trait + '<br><span style="opacity:0.6">Meta · Groq</span>';
-  $('fmini-sub-b').innerHTML    = FIGHTER_B.trait + '<br><span style="opacity:0.6">Cohere</span>';
-
-  const maxRnds = Math.max(+$('rounds-sl').value, topics.length);
-  S.topics   = topics; S.topic    = topics[0]; S.maxRounds = maxRnds; S.roundDur  = +$('dur-sl').value; S.curRound  = 0; S.history   = []; S.roundSummaries = []; S.scoreA = 0; S.scoreB = 0;
-  S.statsA = {w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0}; S.statsB = {w:0,q:0,e:0,agg:0,agrees:0,interrupts:0,n:0};
-
-  $('setup').style.display = 'none';
-  $('arena').style.display = 'block';
-  $('a-topic').textContent = S.topic;
-  $('cur-rnd').textContent = 1;
-  $('max-rnd').textContent = S.maxRounds;
-  $('chat-feed').innerHTML = '';
-  $('btn-judge').disabled = true;
-  updateScore(); updateStats('A',''); updateStats('B','');
-
-  const ann = document.createElement('div');
-  ann.className = 'round-sep';
-  ann.innerHTML = FIGHTER_A.emoji + ' ' + FIGHTER_A.name + ' &nbsp;БАТТЛ НАЧАТ&nbsp; ' + FIGHTER_B.emoji + ' ' + FIGHTER_B.name;
-  $('chat-feed').appendChild(ann);
-
-  await playRound();
-}
-
-async function playRound() {
-  S.running = true; S.curRound++;
-  if (S.topics.length > 1) { const idx = Math.min(S.curRound - 1, S.topics.length - 1); S.topic = S.topics[idx]; }
-  $('a-topic').textContent = S.topic;
-  $('cur-rnd').textContent = S.curRound;
-  $('btn-judge').disabled = true;
-
-  if (S.topics.length > 1) {
-    const topicSep = document.createElement('div');
-    topicSep.className = 'round-sep';
-    topicSep.innerHTML = `РАУНД ${S.curRound} · ${S.topic}`;
-    $('chat-feed').appendChild(topicSep);
-  } else { addSep(S.curRound); }
-
-  const roundEnd = Date.now() + S.roundDur * 1000;
-  const ticker = setInterval(() => {
-    const left = Math.max(0, Math.ceil((roundEnd - Date.now()) / 1000));
-    $('timer-lbl').textContent = left > 0 ? `⏱ ${left}с` : '⏱ 0с';
-    if (left === 0) clearInterval(ticker);
-  }, 500);
-
-  let turn = 'A';
-  while (Date.now() < roundEnd) {
-    const fighter = turn === 'A' ? FIGHTER_A : FIGHTER_B;
-    const colorVar = turn === 'A' ? '--blue' : '--red';
-    try {
-      addTyping(fighter.emoji + ' ' + fighter.name + ' генерирует ответ…', colorVar);
-      let prevContext = '';
-      if (S.roundSummaries.length > 0) {
-        prevContext = '\n\nКОНТЕКСТ ПРЕДЫДУЩИХ РАУНДОВ:\n' + S.roundSummaries.map(rs => `Раунд ${rs.round} (тема: "${rs.topic}"): ${rs.summary}`).join('\n');
-      }
-      const sysPrompt = fighter.style + `\n\nТема ЭТОГО раунда: "${S.topic}".${prevContext}\nВАЖНО: пиши ровно 15-20 слов. Не больше.`;
-      const text = await callOR(fighter, sysPrompt, buildMsgs(turn));
-      rmTyping();
-
-      const clean = text.trim().replace(/^\[.*?\]:\s*/, '');
-      S.history.push({ name: fighter.name, text: clean });
-      const hasInt = countInterrupt(clean);
-      addMsg(turn, fighter.emoji + ' ' + fighter.name, clean, hasInt > 0);
-      updateStats(turn, clean);
-
-      if (turn === 'A') S.scoreA += Math.min(3, Math.ceil(words(clean) / 8));
-      else              S.scoreB += Math.min(3, Math.ceil(words(clean) / 8));
-      updateScore();
-    } catch(e) { rmTyping(); toast('Ошибка сети. Пробуем снова...'); await new Promise(r => setTimeout(r, 2000)); }
-    turn = turn === 'A' ? 'B' : 'A';
-    const gap = Math.min(600, roundEnd - Date.now());
-    if (gap > 0) await new Promise(r => setTimeout(r, gap));
-  }
-  clearInterval(ticker);
-  $('timer-lbl').textContent = '✓ РАУНД ОКОНЧЕН';
-  S.running = false;
-
-  if (S.topics.length > 1 && S.history.length > 0) {
-    const roundMsgs = S.history.slice(-10);
-    const summary = roundMsgs.map(h => h.name + ': ' + h.text).join(' | ');
-    S.roundSummaries.push({ round: S.curRound, topic: S.topic, summary });
-  }
-
-  if (S.curRound < S.maxRounds) {
-    await new Promise(r => setTimeout(r, 1500));
-    if (S.curRound < S.maxRounds) await playRound();
-  }
-  if (S.curRound >= S.maxRounds) { $('btn-judge').disabled = false; $('timer-lbl').textContent = '🏁 ФИНАЛ'; }
-}
-
-async function callJudge() {
-  if(S.running) return;
-  S.running=true; $('btn-judge').disabled=true;
-  const sep=document.createElement('div'); sep.className='round-sep'; sep.textContent='⚖️ ВЕРДИКТ АРБИТРА'; $('chat-feed').appendChild(sep);
-  addTyping('⚖️ Арбитр выносит решение…', '--gold');
-
-  const sa=S.statsA, sb=S.statsB;
-  const transcript = S.history.map(h=>`[${h.name}]: ${h.text}`).join('\n\n');
-  const prompt = `Диалог:\n${transcript}\n\nОцени спор объективно. Назови победителя по имени.`;
-
-  let verdict;
-  try {
-    verdict = await callOR(JUDGE, 'Ты — беспристрастный арбитр дебатов.', [{role:'user', content:prompt}]);
-  } catch(e){ rmTyping(); toast('Ошибка арбитра'); S.running=false; return; }
-
-  rmTyping(); verdict = verdict.trim();
-  addMsg('J', '⚖️ АРБИТР', verdict, false);
-
-  const vl=verdict.toLowerCase();
-  const na=FIGHTER_A.name.toLowerCase(), nb=FIGHTER_B.name.toLowerCase();
-  let wName, wCls, wCrown;
-  if (vl.includes(na) && !vl.includes(nb)) { wName=FIGHTER_A.name; wCls='a'; wCrown=FIGHTER_A.emoji; }
-  else if (vl.includes(nb) && !vl.includes(na)) { wName=FIGHTER_B.name; wCls='b'; wCrown=FIGHTER_B.emoji; }
-  else if (S.scoreA > S.scoreB) { wName=FIGHTER_A.name; wCls='a'; wCrown=FIGHTER_A.emoji; }
-  else if (S.scoreB > S.scoreA) { wName=FIGHTER_B.name; wCls='b'; wCrown=FIGHTER_B.emoji; }
-  else { wName='НИЧЬЯ'; wCls='tie'; wCrown='🤝'; }
-
-  setTimeout(()=>{
-    $('w-crown').textContent=wCrown; $('w-name').textContent=wName; $('w-name').className='wname '+wCls; $('w-verdict').textContent=verdict;
-    $('w-w-a').textContent=sa.w; $('w-w-b').textContent=sb.w; $('w-agree').textContent=`${sa.agrees}/${sb.agrees}`;
-    $('w-int').textContent=`${sa.interrupts}/${sb.interrupts}`; $('w-agg').textContent=`${sa.agg}%/${sb.agg}%`; $('w-q').textContent=`${sa.q}/${sb.q}`;
-    $('winner').classList.add('show');
-  }, 1000);
-  S.running=false;
-}
-
-function resetBattle(){ $('winner').classList.remove('show'); $('arena').style.display='none'; $('setup').style.display='block'; $('timer-lbl').textContent='⏱ —'; S.roundSummaries = []; S.topics = []; }
-</script>
 </body>
 </html>
